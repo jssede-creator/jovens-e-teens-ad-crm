@@ -148,10 +148,13 @@ export function podeVer(permissao: Permissao, acesso: Acesso | null | undefined)
 export function itensVisiveis(itens: NavItem[], acesso: Acesso | null | undefined): NavItem[] {
   return itens
     .filter((item) => podeVer(item.permissao, acesso))
-    .map((item) => ({
-      ...item,
-      filhos: item.filhos?.filter((filho) => podeVer(filho.permissao, acesso)),
-    }));
+    .map((item) => {
+      if (!item.filhos) return item;
+      return {
+        ...item,
+        filhos: item.filhos.filter((filho) => podeVer(filho.permissao, acesso)),
+      };
+    });
 }
 
 function todosItens(): NavItem[] {
