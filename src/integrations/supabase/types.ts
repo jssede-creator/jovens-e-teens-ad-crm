@@ -14,16 +14,426 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      auditoria: {
+        Row: {
+          acao: string
+          created_at: string
+          detalhe: string | null
+          entidade: string
+          entidade_id: string | null
+          id: string
+          user_id: string | null
+          user_nome: string
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          detalhe?: string | null
+          entidade: string
+          entidade_id?: string | null
+          id?: string
+          user_id?: string | null
+          user_nome?: string
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          detalhe?: string | null
+          entidade?: string
+          entidade_id?: string | null
+          id?: string
+          user_id?: string | null
+          user_nome?: string
+        }
+        Relationships: []
+      }
+      cadastros: {
+        Row: {
+          cep: string
+          cidade: string
+          compartilhou_dados_complementares: boolean
+          complemento: string | null
+          congregacao_id: string | null
+          cpf: string
+          curso: string | null
+          data_cadastro: string
+          data_nascimento: string
+          email: string
+          endereco: string
+          escolaridade: string | null
+          estado_civil: string | null
+          id: string
+          lgpd_aceito: boolean
+          local_estudo: string | null
+          mora_com_pais: boolean | null
+          nome_completo: string
+          numero: string | null
+          renda_familiar: string | null
+          renda_mensal: string | null
+          rg: string
+          telefone: string
+          trabalha_atualmente: boolean | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cep: string
+          cidade: string
+          compartilhou_dados_complementares?: boolean
+          complemento?: string | null
+          congregacao_id?: string | null
+          cpf: string
+          curso?: string | null
+          data_cadastro?: string
+          data_nascimento: string
+          email: string
+          endereco: string
+          escolaridade?: string | null
+          estado_civil?: string | null
+          id?: string
+          lgpd_aceito: boolean
+          local_estudo?: string | null
+          mora_com_pais?: boolean | null
+          nome_completo: string
+          numero?: string | null
+          renda_familiar?: string | null
+          renda_mensal?: string | null
+          rg: string
+          telefone: string
+          trabalha_atualmente?: boolean | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cep?: string
+          cidade?: string
+          compartilhou_dados_complementares?: boolean
+          complemento?: string | null
+          congregacao_id?: string | null
+          cpf?: string
+          curso?: string | null
+          data_cadastro?: string
+          data_nascimento?: string
+          email?: string
+          endereco?: string
+          escolaridade?: string | null
+          estado_civil?: string | null
+          id?: string
+          lgpd_aceito?: boolean
+          local_estudo?: string | null
+          mora_com_pais?: boolean | null
+          nome_completo?: string
+          numero?: string | null
+          renda_familiar?: string | null
+          renda_mensal?: string | null
+          rg?: string
+          telefone?: string
+          trabalha_atualmente?: boolean | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cadastros_congregacao_id_fkey"
+            columns: ["congregacao_id"]
+            isOneToOne: false
+            referencedRelation: "congregacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      composicao_familiar: {
+        Row: {
+          cadastro_id: string
+          created_at: string
+          id: string
+          idade: number | null
+          nome_completo: string
+          ocupacao: string | null
+          parentesco: string | null
+        }
+        Insert: {
+          cadastro_id: string
+          created_at?: string
+          id?: string
+          idade?: number | null
+          nome_completo: string
+          ocupacao?: string | null
+          parentesco?: string | null
+        }
+        Update: {
+          cadastro_id?: string
+          created_at?: string
+          id?: string
+          idade?: number | null
+          nome_completo?: string
+          ocupacao?: string | null
+          parentesco?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "composicao_familiar_cadastro_id_fkey"
+            columns: ["cadastro_id"]
+            isOneToOne: false
+            referencedRelation: "cadastros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      congregacoes: {
+        Row: {
+          bairro: string
+          cep: string
+          cidade: string
+          created_at: string
+          endereco: string
+          estado: string
+          id: string
+          nome: string
+          numero: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bairro: string
+          cep: string
+          cidade: string
+          created_at?: string
+          endereco: string
+          estado: string
+          id?: string
+          nome: string
+          numero?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bairro?: string
+          cep?: string
+          cidade?: string
+          created_at?: string
+          endereco?: string
+          estado?: string
+          id?: string
+          nome?: string
+          numero?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ebd_aulas: {
+        Row: {
+          created_at: string
+          data: string
+          hora_fim: string
+          hora_inicio: string
+          id: string
+          nome: string
+          turma_id: string
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          hora_fim: string
+          hora_inicio: string
+          id?: string
+          nome: string
+          turma_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          nome?: string
+          turma_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ebd_aulas_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "ebd_turmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ebd_frequencia: {
+        Row: {
+          cadastro_id: string
+          created_at: string
+          data: string
+          id: string
+          presente: boolean
+          turma_id: string
+        }
+        Insert: {
+          cadastro_id: string
+          created_at?: string
+          data: string
+          id?: string
+          presente: boolean
+          turma_id: string
+        }
+        Update: {
+          cadastro_id?: string
+          created_at?: string
+          data?: string
+          id?: string
+          presente?: boolean
+          turma_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ebd_frequencia_cadastro_id_fkey"
+            columns: ["cadastro_id"]
+            isOneToOne: false
+            referencedRelation: "cadastros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ebd_frequencia_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "ebd_turmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ebd_matriculas: {
+        Row: {
+          cadastro_id: string
+          created_at: string
+          id: string
+          turma_id: string
+        }
+        Insert: {
+          cadastro_id: string
+          created_at?: string
+          id?: string
+          turma_id: string
+        }
+        Update: {
+          cadastro_id?: string
+          created_at?: string
+          id?: string
+          turma_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ebd_matriculas_cadastro_id_fkey"
+            columns: ["cadastro_id"]
+            isOneToOne: false
+            referencedRelation: "cadastros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ebd_matriculas_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "ebd_turmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ebd_turmas: {
+        Row: {
+          congregacao_id: string
+          created_at: string
+          id: string
+          idade_max: number
+          idade_min: number
+          nome: string
+        }
+        Insert: {
+          congregacao_id: string
+          created_at?: string
+          id?: string
+          idade_max: number
+          idade_min: number
+          nome: string
+        }
+        Update: {
+          congregacao_id?: string
+          created_at?: string
+          id?: string
+          idade_max?: number
+          idade_min?: number
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ebd_turmas_congregacao_id_fkey"
+            columns: ["congregacao_id"]
+            isOneToOne: false
+            referencedRelation: "congregacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_access: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          module_key: string
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          module_key: string
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          module_key?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_module_access: {
+        Args: { _module: string; _user_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +560,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
