@@ -9,50 +9,292 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
+import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as AuthenticatedCongregacoesIndexRouteImport } from './routes/_authenticated/congregacoes/index'
+import { Route as AuthenticatedCongregacoesListaRouteImport } from './routes/_authenticated/congregacoes/lista'
+import { Route as AuthenticatedCongregacoesPainelRouteImport } from './routes/_authenticated/congregacoes/painel'
+import { Route as AuthenticatedEbdIndexRouteImport } from './routes/_authenticated/ebd/index'
+import { Route as AuthenticatedEbdAulasRouteImport } from './routes/_authenticated/ebd/aulas'
+import { Route as AuthenticatedEbdPainelRouteImport } from './routes/_authenticated/ebd/painel'
+import { Route as AuthenticatedEbdTurmasRouteImport } from './routes/_authenticated/ebd/turmas'
 
-const IndexRoute = IndexRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCongregacoesIndexRoute =
+  AuthenticatedCongregacoesIndexRouteImport.update({
+    id: '/congregacoes/',
+    path: '/congregacoes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCongregacoesListaRoute =
+  AuthenticatedCongregacoesListaRouteImport.update({
+    id: '/congregacoes/lista',
+    path: '/congregacoes/lista',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCongregacoesPainelRoute =
+  AuthenticatedCongregacoesPainelRouteImport.update({
+    id: '/congregacoes/painel',
+    path: '/congregacoes/painel',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEbdIndexRoute = AuthenticatedEbdIndexRouteImport.update({
+  id: '/ebd/',
+  path: '/ebd/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEbdAulasRoute = AuthenticatedEbdAulasRouteImport.update({
+  id: '/ebd/aulas',
+  path: '/ebd/aulas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEbdPainelRoute = AuthenticatedEbdPainelRouteImport.update({
+  id: '/ebd/painel',
+  path: '/ebd/painel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEbdTurmasRoute = AuthenticatedEbdTurmasRouteImport.update({
+  id: '/ebd/turmas',
+  path: '/ebd/turmas',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/auth': typeof AuthRoute
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
+  '/congregacoes/lista': typeof AuthenticatedCongregacoesListaRoute
+  '/congregacoes/painel': typeof AuthenticatedCongregacoesPainelRoute
+  '/ebd/aulas': typeof AuthenticatedEbdAulasRoute
+  '/ebd/painel': typeof AuthenticatedEbdPainelRoute
+  '/ebd/turmas': typeof AuthenticatedEbdTurmasRoute
+  '/congregacoes/': typeof AuthenticatedCongregacoesIndexRoute
+  '/ebd/': typeof AuthenticatedEbdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/congregacoes/lista': typeof AuthenticatedCongregacoesListaRoute
+  '/congregacoes/painel': typeof AuthenticatedCongregacoesPainelRoute
+  '/ebd/aulas': typeof AuthenticatedEbdAulasRoute
+  '/ebd/painel': typeof AuthenticatedEbdPainelRoute
+  '/ebd/turmas': typeof AuthenticatedEbdTurmasRoute
+  '/congregacoes': typeof AuthenticatedCongregacoesIndexRoute
+  '/ebd': typeof AuthenticatedEbdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/inicio': typeof AuthenticatedInicioRoute
+  '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/congregacoes/lista': typeof AuthenticatedCongregacoesListaRoute
+  '/_authenticated/congregacoes/painel': typeof AuthenticatedCongregacoesPainelRoute
+  '/_authenticated/ebd/aulas': typeof AuthenticatedEbdAulasRoute
+  '/_authenticated/ebd/painel': typeof AuthenticatedEbdPainelRoute
+  '/_authenticated/ebd/turmas': typeof AuthenticatedEbdTurmasRoute
+  '/_authenticated/congregacoes/': typeof AuthenticatedCongregacoesIndexRoute
+  '/_authenticated/ebd/': typeof AuthenticatedEbdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/inicio'
+    | '/perfil'
+    | '/congregacoes/lista'
+    | '/congregacoes/painel'
+    | '/ebd/aulas'
+    | '/ebd/painel'
+    | '/ebd/turmas'
+    | '/congregacoes/'
+    | '/ebd/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/auth'
+    | '/inicio'
+    | '/perfil'
+    | '/'
+    | '/congregacoes/lista'
+    | '/congregacoes/painel'
+    | '/ebd/aulas'
+    | '/ebd/painel'
+    | '/ebd/turmas'
+    | '/congregacoes'
+    | '/ebd'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/inicio'
+    | '/_authenticated/perfil'
+    | '/_authenticated/'
+    | '/_authenticated/congregacoes/lista'
+    | '/_authenticated/congregacoes/painel'
+    | '/_authenticated/ebd/aulas'
+    | '/_authenticated/ebd/painel'
+    | '/_authenticated/ebd/turmas'
+    | '/_authenticated/congregacoes/'
+    | '/_authenticated/ebd/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inicio': {
+      id: '/_authenticated/inicio'
+      path: '/inicio'
+      fullPath: '/inicio'
+      preLoaderRoute: typeof AuthenticatedInicioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/perfil': {
+      id: '/_authenticated/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/congregacoes/': {
+      id: '/_authenticated/congregacoes/'
+      path: '/congregacoes'
+      fullPath: '/congregacoes/'
+      preLoaderRoute: typeof AuthenticatedCongregacoesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/congregacoes/lista': {
+      id: '/_authenticated/congregacoes/lista'
+      path: '/congregacoes/lista'
+      fullPath: '/congregacoes/lista'
+      preLoaderRoute: typeof AuthenticatedCongregacoesListaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/congregacoes/painel': {
+      id: '/_authenticated/congregacoes/painel'
+      path: '/congregacoes/painel'
+      fullPath: '/congregacoes/painel'
+      preLoaderRoute: typeof AuthenticatedCongregacoesPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ebd/': {
+      id: '/_authenticated/ebd/'
+      path: '/ebd'
+      fullPath: '/ebd/'
+      preLoaderRoute: typeof AuthenticatedEbdIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ebd/aulas': {
+      id: '/_authenticated/ebd/aulas'
+      path: '/ebd/aulas'
+      fullPath: '/ebd/aulas'
+      preLoaderRoute: typeof AuthenticatedEbdAulasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ebd/painel': {
+      id: '/_authenticated/ebd/painel'
+      path: '/ebd/painel'
+      fullPath: '/ebd/painel'
+      preLoaderRoute: typeof AuthenticatedEbdPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ebd/turmas': {
+      id: '/_authenticated/ebd/turmas'
+      path: '/ebd/turmas'
+      fullPath: '/ebd/turmas'
+      preLoaderRoute: typeof AuthenticatedEbdTurmasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
+  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedCongregacoesListaRoute: typeof AuthenticatedCongregacoesListaRoute
+  AuthenticatedCongregacoesPainelRoute: typeof AuthenticatedCongregacoesPainelRoute
+  AuthenticatedEbdAulasRoute: typeof AuthenticatedEbdAulasRoute
+  AuthenticatedEbdPainelRoute: typeof AuthenticatedEbdPainelRoute
+  AuthenticatedEbdTurmasRoute: typeof AuthenticatedEbdTurmasRoute
+  AuthenticatedCongregacoesIndexRoute: typeof AuthenticatedCongregacoesIndexRoute
+  AuthenticatedEbdIndexRoute: typeof AuthenticatedEbdIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedInicioRoute: AuthenticatedInicioRoute,
+  AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedCongregacoesListaRoute: AuthenticatedCongregacoesListaRoute,
+  AuthenticatedCongregacoesPainelRoute: AuthenticatedCongregacoesPainelRoute,
+  AuthenticatedEbdAulasRoute: AuthenticatedEbdAulasRoute,
+  AuthenticatedEbdPainelRoute: AuthenticatedEbdPainelRoute,
+  AuthenticatedEbdTurmasRoute: AuthenticatedEbdTurmasRoute,
+  AuthenticatedCongregacoesIndexRoute: AuthenticatedCongregacoesIndexRoute,
+  AuthenticatedEbdIndexRoute: AuthenticatedEbdIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
