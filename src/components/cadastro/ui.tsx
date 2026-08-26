@@ -1,5 +1,10 @@
 import { Check } from "lucide-react";
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
+import type {
+  ButtonHTMLAttributes,
+  InputHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+} from "react";
 
 import { cn } from "@/lib/utils";
 import { mascaraCEP, mascaraCPF, mascaraRG, mascaraTelefone } from "@/lib/formato";
@@ -55,10 +60,9 @@ export function PillButton({
   className,
   type = "button",
   ...props
-}: InputHTMLAttributes<HTMLButtonElement> & {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode;
   variante?: PillVariant;
-  type?: "button" | "submit" | "reset";
 }) {
   const estilos: Record<PillVariant, string> = {
     solido: "bg-jt-blue text-white shadow-pill hover:brightness-110",
@@ -73,7 +77,7 @@ export function PillButton({
         estilos[variante],
         className,
       )}
-      {...(props as Record<string, unknown>)}
+      {...props}
     >
       {children}
     </button>
