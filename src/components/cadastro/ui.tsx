@@ -16,10 +16,7 @@ import { mascaraCEP, mascaraCPF, mascaraRG, mascaraTelefone } from "@/lib/format
 export function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <p
-      className={cn(
-        "text-[11px] font-medium uppercase tracking-[0.18em] text-jt-muted",
-        className,
-      )}
+      className={cn("text-[11px] font-medium uppercase tracking-[0.18em] text-jt-muted", className)}
     >
       {children}
     </p>
@@ -38,9 +35,7 @@ export function Panel({
   descricao?: string;
 }) {
   return (
-    <section
-      className={cn("rounded-xl border border-jt-line bg-jt-panel p-5 sm:p-6", className)}
-    >
+    <section className={cn("rounded-xl border border-jt-line bg-jt-panel p-5 sm:p-6", className)}>
       {title ? (
         <header className="mb-4">
           <h2 className="font-display text-lg text-jt-text">{title}</h2>
@@ -93,10 +88,10 @@ export function Field({
   children,
 }: {
   label: string;
-  erro?: string;
-  dica?: string;
-  obrigatorio?: boolean;
-  htmlFor?: string;
+  erro?: string | undefined;
+  dica?: string | undefined;
+  obrigatorio?: boolean | undefined;
+  htmlFor?: string | undefined;
   children: ReactNode;
 }) {
   return (
@@ -230,13 +225,7 @@ export function YesNoToggle({
   );
 }
 
-export function ProgressTrail({
-  etapas,
-  atual,
-}: {
-  etapas: string[];
-  atual: number;
-}) {
+export function ProgressTrail({ etapas, atual }: { etapas: string[]; atual: number }) {
   return (
     <ol className="flex flex-wrap items-center gap-x-3 gap-y-2">
       {etapas.map((etapa, i) => {
@@ -254,12 +243,7 @@ export function ProgressTrail({
             >
               {concluida ? <Check className="h-4 w-4" aria-hidden /> : i + 1}
             </span>
-            <span
-              className={cn(
-                "text-sm",
-                ativa ? "font-medium text-jt-text" : "text-jt-muted",
-              )}
-            >
+            <span className={cn("text-sm", ativa ? "font-medium text-jt-text" : "text-jt-muted")}>
               {etapa}
             </span>
             {i < etapas.length - 1 ? (

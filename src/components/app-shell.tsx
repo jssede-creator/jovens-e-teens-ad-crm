@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
+  Instagram,
   ChevronDown,
   ChevronRight,
   LogOut,
@@ -77,7 +78,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const recolhida = largura === "trilho" ? true : largura === "amplo" ? preferenciaRecolhida : false;
+  const recolhida =
+    largura === "trilho" ? true : largura === "amplo" ? preferenciaRecolhida : false;
 
   const alternarBarra = () => {
     if (largura === "compacto") {
@@ -169,10 +171,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               aria-hidden
             />
             <input
-              placeholder="Buscar no sistema…"
+              placeholder="Buscar…"
               aria-label="Busca global"
-              className="h-9 w-full rounded-full border border-jt-line bg-jt-panel-2 pl-9 pr-3 text-sm text-jt-text placeholder:text-jt-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jt-gold"
+              className="h-9 w-full rounded-full border border-jt-line bg-jt-panel-2 pl-9 pr-14 text-sm text-jt-text placeholder:text-jt-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jt-gold"
             />
+            <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-md border border-jt-line bg-jt-panel px-1.5 py-0.5 text-[10px] text-jt-muted sm:block">
+              ⌘K
+            </kbd>
           </div>
 
           <div className="ml-auto flex items-center gap-1">
@@ -220,12 +225,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6">
           {trilha.length > 0 ? (
-            <nav aria-label="Migalhas de pão" className="mb-4 flex flex-wrap items-center gap-1 text-sm">
+            <nav
+              aria-label="Migalhas de pão"
+              className="mb-4 flex flex-wrap items-center gap-1 text-sm"
+            >
               {trilha.map((m, i) => (
                 <span key={`${m.rotulo}-${i}`} className="flex items-center gap-1">
-                  {i > 0 ? (
-                    <ChevronRight className="h-4 w-4 text-jt-muted" aria-hidden />
-                  ) : null}
+                  {i > 0 ? <ChevronRight className="h-4 w-4 text-jt-muted" aria-hidden /> : null}
                   {m.rota && i < trilha.length - 1 ? (
                     <Link to={m.rota} className="text-jt-muted hover:text-jt-text">
                       {m.rotulo}
@@ -239,6 +245,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           ) : null}
           {children}
         </main>
+
+        <footer className="mt-8 flex flex-wrap items-center justify-center gap-3 border-t border-jt-line px-4 py-6">
+          <span className="font-display text-sm font-semibold text-jt-text">Nós Somos Um!</span>
+          <a
+            href="https://instagram.com/jovensteens.ad"
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="Instagram do Jovens e Teens AD"
+            className="grid h-8 w-8 place-items-center rounded-full border border-jt-line text-jt-muted transition hover:bg-jt-panel-2 hover:text-jt-text"
+          >
+            <Instagram className="h-4 w-4" aria-hidden />
+          </a>
+        </footer>
       </div>
     </div>
   );

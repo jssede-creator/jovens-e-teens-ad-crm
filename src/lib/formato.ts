@@ -89,3 +89,34 @@ export function mensagemErro(erro: unknown): string {
   if (/password should be/i.test(msg)) return "A senha precisa ter pelo menos 6 caracteres.";
   return "Não foi possível concluir a operação. Tente novamente.";
 }
+
+/** ISO (aaaa-mm-dd) → "17 jun 1996" */
+export function dataCurta(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const [ano, mes, dia] = iso.slice(0, 10).split("-");
+  if (!ano || !mes || !dia) return "—";
+  const meses = [
+    "jan",
+    "fev",
+    "mar",
+    "abr",
+    "mai",
+    "jun",
+    "jul",
+    "ago",
+    "set",
+    "out",
+    "nov",
+    "dez",
+  ];
+  return `${Number(dia)} ${meses[Number(mes) - 1] ?? ""} ${ano}`;
+}
+
+/** Bytes → "1,4 MB" */
+export function tamanhoArquivo(bytes: number): string {
+  if (!bytes) return "0 B";
+  const unidades = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), unidades.length - 1);
+  const valor = bytes / 1024 ** i;
+  return `${valor.toFixed(i === 0 ? 0 : 1).replace(".", ",")} ${unidades[i]}`;
+}

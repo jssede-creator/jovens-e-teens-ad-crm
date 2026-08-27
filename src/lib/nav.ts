@@ -1,9 +1,16 @@
 import {
+  CalendarDays,
   ClipboardCheck,
   Church,
+  FolderClosed,
   GraduationCap,
+  KanbanSquare,
   LayoutGrid,
+  LifeBuoy,
+  MessageCircle,
+  Settings,
   UserRound,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -14,11 +21,22 @@ import {
  */
 
 export type ModuleKey =
+  | "membros"
+  | "membros_gerenciar"
   | "congregacoes"
   | "congregacoes_gerenciar"
   | "ebd"
   | "ebd_chamada"
-  | "ebd_turmas";
+  | "ebd_turmas"
+  | "calendario"
+  | "papo_reto"
+  | "papo_reto_gerenciar"
+  | "projetos"
+  | "projetos_gerenciar"
+  | "arquivos"
+  | "arquivos_gerenciar"
+  | "suporte"
+  | "configuracoes";
 
 export type Permissao = { tipo: "todos" } | { tipo: "modulo"; modulo: ModuleKey };
 
@@ -58,6 +76,29 @@ export const navegacao: NavGrupo[] = [
         descricao: "Complete ou revise os seus dados no ministério.",
         icone: ClipboardCheck,
         permissao: TODOS,
+      },
+      {
+        rota: "/membros",
+        rotulo: "Membros",
+        descricao: "Painel e lista de quem já passou pelo cadastro.",
+        icone: Users,
+        permissao: modulo("membros"),
+        filhos: [
+          {
+            rota: "/membros/painel",
+            rotulo: "Painel",
+            descricao: "Resumo dos cadastros do ministério.",
+            icone: Users,
+            permissao: modulo("membros"),
+          },
+          {
+            rota: "/membros/lista",
+            rotulo: "Lista",
+            descricao: "Todos os membros cadastrados.",
+            icone: Users,
+            permissao: modulo("membros"),
+          },
+        ],
       },
       {
         rota: "/congregacoes",
@@ -104,11 +145,55 @@ export const navegacao: NavGrupo[] = [
             permissao: modulo("ebd"),
           },
           {
-            rota: "/ebd/aulas",
+            rota: "/ebd/cadastrar-aulas",
             rotulo: "Cadastrar aulas",
             descricao: "Agende as aulas de cada turma.",
             icone: GraduationCap,
             permissao: modulo("ebd"),
+          },
+        ],
+      },
+      {
+        rota: "/calendario",
+        rotulo: "Calendário",
+        descricao: "Aulas, papos retos e horários abertos em um mês só.",
+        icone: CalendarDays,
+        permissao: modulo("calendario"),
+      },
+      {
+        rota: "/novosprojetos",
+        rotulo: "Novos projetos",
+        descricao: "Quadro dos projetos do ministério, da ideia à entrega.",
+        icone: KanbanSquare,
+        permissao: modulo("projetos"),
+      },
+      {
+        rota: "/arquivos",
+        rotulo: "Arquivos",
+        descricao: "Documentos e mídias do ministério, organizados por pasta.",
+        icone: FolderClosed,
+        permissao: modulo("arquivos"),
+      },
+      {
+        rota: "/papo-reto",
+        rotulo: "Papo reto",
+        descricao: "Agende uma conversa com a liderança do ministério.",
+        icone: MessageCircle,
+        permissao: modulo("papo_reto"),
+        filhos: [
+          {
+            rota: "/papo-reto/agendar",
+            rotulo: "Agendar",
+            descricao: "Escolha um horário aberto e mande seu assunto.",
+            icone: MessageCircle,
+            permissao: modulo("papo_reto"),
+          },
+          {
+            rota: "/papo-reto/agenda",
+            rotulo: "Agenda",
+            descricao: "Pedidos de conversa e horários abertos.",
+            icone: MessageCircle,
+            permissao: modulo("papo_reto"),
           },
         ],
       },
@@ -120,7 +205,7 @@ export const navegacao: NavGrupo[] = [
       {
         rota: "/perfil",
         rotulo: "Meu usuário",
-        descricao: "Meus dados e informações da conta.",
+        descricao: "Seus dados, acesso e preferências da conta.",
         icone: UserRound,
         permissao: TODOS,
         filhos: [
@@ -130,6 +215,59 @@ export const navegacao: NavGrupo[] = [
             descricao: "Informações da sua conta no ministério.",
             icone: UserRound,
             permissao: TODOS,
+          },
+          {
+            rota: "/perfil/acessos",
+            rotulo: "Meus acessos",
+            descricao: "Módulos liberados para a sua conta.",
+            icone: UserRound,
+            permissao: TODOS,
+          },
+        ],
+      },
+      {
+        rota: "/suporte",
+        rotulo: "Suporte",
+        descricao: "Histórico de ações registradas no CRM.",
+        icone: LifeBuoy,
+        permissao: modulo("suporte"),
+        filhos: [
+          {
+            rota: "/suporte/historico",
+            rotulo: "Histórico",
+            descricao: "Trilha de auditoria do sistema.",
+            icone: LifeBuoy,
+            permissao: modulo("suporte"),
+          },
+          {
+            rota: "/suporte/ajuda",
+            rotulo: "Ajuda",
+            descricao: "Como falar com quem cuida do CRM.",
+            icone: LifeBuoy,
+            permissao: modulo("suporte"),
+          },
+        ],
+      },
+      {
+        rota: "/configuracoes",
+        rotulo: "Configurações",
+        descricao: "Usuários, funções e acessos do sistema.",
+        icone: Settings,
+        permissao: modulo("configuracoes"),
+        filhos: [
+          {
+            rota: "/configuracoes/usuarios",
+            rotulo: "Usuários",
+            descricao: "Contas do CRM, funções e módulos liberados.",
+            icone: Settings,
+            permissao: modulo("configuracoes"),
+          },
+          {
+            rota: "/configuracoes/sistema",
+            rotulo: "Sistema",
+            descricao: "Informações do ambiente e dos módulos.",
+            icone: Settings,
+            permissao: modulo("configuracoes"),
           },
         ],
       },
