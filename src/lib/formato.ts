@@ -72,6 +72,19 @@ export function mensagemErro(erro: unknown): string {
   const e = erro as { code?: string; message?: string } | null;
   const msg = e?.message ?? "";
   if (!e) return "Não foi possível concluir a operação. Tente novamente.";
+  // Armazenamento (Supabase Storage).
+  if (e.code === "NoSuchBucket" || /bucket not found/i.test(msg)) {
+    return "O espaço de arquivos ainda não foi criado no banco. Peça para aplicar as migrações pendentes de supabase/migrations.";
+  }
+  if (/payload too large|exceeded the maximum allowed size/i.test(msg)) {
+    return "O arquivo é grande demais para o servidor.";
+  }
+  if (/mime type .* is not supported/i.test(msg)) {
+    return "Esse tipo de arquivo não é aceito.";
+  }
+  if (e.code === "InvalidKey" || /invalid key/i.test(msg)) {
+    return "O nome do arquivo tem caracteres que o servidor não aceita. Renomeie e tente de novo.";
+  }
   if (e.code === "42501" || /row-level security|permission denied/i.test(msg)) {
     return "Sua conta não tem permissão para realizar esta ação.";
   }

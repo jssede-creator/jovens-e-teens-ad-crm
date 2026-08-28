@@ -275,7 +275,7 @@ function Sidebar({
           src={logoCrm}
           alt=""
           aria-hidden
-          className="h-8 w-8 shrink-0 rounded-lg object-cover"
+          className="h-10 w-10 shrink-0 rounded-lg object-contain"
         />
         {!recolhida ? (
           <span className="flex flex-col leading-tight">

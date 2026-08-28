@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Check, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import ministerioFoto from "@/assets/ministerio.jpg";
+import ministerioFoto from "@/assets/inabalaveis.png";
 import {
   DateInput,
   Eyebrow,
