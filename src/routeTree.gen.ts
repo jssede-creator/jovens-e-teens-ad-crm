@@ -15,7 +15,6 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedArquivosRouteImport } from './routes/_authenticated/arquivos'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
-import { Route as AuthenticatedNovosprojetosRouteImport } from './routes/_authenticated/novosprojetos'
 import { Route as AuthenticatedConfiguracoesIndexRouteImport } from './routes/_authenticated/configuracoes/index'
 import { Route as AuthenticatedConfiguracoesSistemaRouteImport } from './routes/_authenticated/configuracoes/sistema'
 import { Route as AuthenticatedConfiguracoesUsuariosRouteImport } from './routes/_authenticated/configuracoes/usuarios'
@@ -31,6 +30,9 @@ import { Route as AuthenticatedEventosPainelRouteImport } from './routes/_authen
 import { Route as AuthenticatedMembrosIndexRouteImport } from './routes/_authenticated/membros/index'
 import { Route as AuthenticatedMembrosListaRouteImport } from './routes/_authenticated/membros/lista'
 import { Route as AuthenticatedMembrosPainelRouteImport } from './routes/_authenticated/membros/painel'
+import { Route as AuthenticatedNovosprojetosIndexRouteImport } from './routes/_authenticated/novosprojetos/index'
+import { Route as AuthenticatedNovosprojetosCronogramaRouteImport } from './routes/_authenticated/novosprojetos/cronograma'
+import { Route as AuthenticatedNovosprojetosTarefasRouteImport } from './routes/_authenticated/novosprojetos/tarefas'
 import { Route as AuthenticatedPapoRetoIndexRouteImport } from './routes/_authenticated/papo-reto/index'
 import { Route as AuthenticatedPapoRetoAgendarRouteImport } from './routes/_authenticated/papo-reto/agendar'
 import { Route as AuthenticatedPapoRetoAprovacoesRouteImport } from './routes/_authenticated/papo-reto/aprovacoes'
@@ -74,12 +76,6 @@ const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
   path: '/inicio',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedNovosprojetosRoute =
-  AuthenticatedNovosprojetosRouteImport.update({
-    id: '/novosprojetos',
-    path: '/novosprojetos',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedConfiguracoesIndexRoute =
   AuthenticatedConfiguracoesIndexRouteImport.update({
     id: '/configuracoes/',
@@ -168,6 +164,24 @@ const AuthenticatedMembrosPainelRoute =
     path: '/membros/painel',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedNovosprojetosIndexRoute =
+  AuthenticatedNovosprojetosIndexRouteImport.update({
+    id: '/novosprojetos/',
+    path: '/novosprojetos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedNovosprojetosCronogramaRoute =
+  AuthenticatedNovosprojetosCronogramaRouteImport.update({
+    id: '/novosprojetos/cronograma',
+    path: '/novosprojetos/cronograma',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedNovosprojetosTarefasRoute =
+  AuthenticatedNovosprojetosTarefasRouteImport.update({
+    id: '/novosprojetos/tarefas',
+    path: '/novosprojetos/tarefas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPapoRetoIndexRoute =
   AuthenticatedPapoRetoIndexRouteImport.update({
     id: '/papo-reto/',
@@ -253,7 +267,6 @@ export interface FileRoutesByFullPath {
   '/arquivos': typeof AuthenticatedArquivosRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/inicio': typeof AuthenticatedInicioRoute
-  '/novosprojetos': typeof AuthenticatedNovosprojetosRoute
   '/configuracoes/sistema': typeof AuthenticatedConfiguracoesSistemaRoute
   '/configuracoes/usuarios': typeof AuthenticatedConfiguracoesUsuariosRoute
   '/congregacoes/lista': typeof AuthenticatedCongregacoesListaRoute
@@ -264,6 +277,8 @@ export interface FileRoutesByFullPath {
   '/eventos/painel': typeof AuthenticatedEventosPainelRoute
   '/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/membros/painel': typeof AuthenticatedMembrosPainelRoute
+  '/novosprojetos/cronograma': typeof AuthenticatedNovosprojetosCronogramaRoute
+  '/novosprojetos/tarefas': typeof AuthenticatedNovosprojetosTarefasRoute
   '/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
   '/papo-reto/aprovacoes': typeof AuthenticatedPapoRetoAprovacoesRoute
   '/papo-reto/cadastrar-horario': typeof AuthenticatedPapoRetoCadastrarHorarioRoute
@@ -277,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/ebd/': typeof AuthenticatedEbdIndexRoute
   '/eventos/': typeof AuthenticatedEventosIndexRoute
   '/membros/': typeof AuthenticatedMembrosIndexRoute
+  '/novosprojetos/': typeof AuthenticatedNovosprojetosIndexRoute
   '/papo-reto/': typeof AuthenticatedPapoRetoIndexRoute
   '/perfil/': typeof AuthenticatedPerfilIndexRoute
   '/suporte/': typeof AuthenticatedSuporteIndexRoute
@@ -288,7 +304,6 @@ export interface FileRoutesByTo {
   '/arquivos': typeof AuthenticatedArquivosRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/inicio': typeof AuthenticatedInicioRoute
-  '/novosprojetos': typeof AuthenticatedNovosprojetosRoute
   '/': typeof AuthenticatedIndexRoute
   '/configuracoes/sistema': typeof AuthenticatedConfiguracoesSistemaRoute
   '/configuracoes/usuarios': typeof AuthenticatedConfiguracoesUsuariosRoute
@@ -300,6 +315,8 @@ export interface FileRoutesByTo {
   '/eventos/painel': typeof AuthenticatedEventosPainelRoute
   '/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/membros/painel': typeof AuthenticatedMembrosPainelRoute
+  '/novosprojetos/cronograma': typeof AuthenticatedNovosprojetosCronogramaRoute
+  '/novosprojetos/tarefas': typeof AuthenticatedNovosprojetosTarefasRoute
   '/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
   '/papo-reto/aprovacoes': typeof AuthenticatedPapoRetoAprovacoesRoute
   '/papo-reto/cadastrar-horario': typeof AuthenticatedPapoRetoCadastrarHorarioRoute
@@ -313,6 +330,7 @@ export interface FileRoutesByTo {
   '/ebd': typeof AuthenticatedEbdIndexRoute
   '/eventos': typeof AuthenticatedEventosIndexRoute
   '/membros': typeof AuthenticatedMembrosIndexRoute
+  '/novosprojetos': typeof AuthenticatedNovosprojetosIndexRoute
   '/papo-reto': typeof AuthenticatedPapoRetoIndexRoute
   '/perfil': typeof AuthenticatedPerfilIndexRoute
   '/suporte': typeof AuthenticatedSuporteIndexRoute
@@ -326,7 +344,6 @@ export interface FileRoutesById {
   '/_authenticated/arquivos': typeof AuthenticatedArquivosRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
-  '/_authenticated/novosprojetos': typeof AuthenticatedNovosprojetosRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/configuracoes/sistema': typeof AuthenticatedConfiguracoesSistemaRoute
   '/_authenticated/configuracoes/usuarios': typeof AuthenticatedConfiguracoesUsuariosRoute
@@ -338,6 +355,8 @@ export interface FileRoutesById {
   '/_authenticated/eventos/painel': typeof AuthenticatedEventosPainelRoute
   '/_authenticated/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/_authenticated/membros/painel': typeof AuthenticatedMembrosPainelRoute
+  '/_authenticated/novosprojetos/cronograma': typeof AuthenticatedNovosprojetosCronogramaRoute
+  '/_authenticated/novosprojetos/tarefas': typeof AuthenticatedNovosprojetosTarefasRoute
   '/_authenticated/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
   '/_authenticated/papo-reto/aprovacoes': typeof AuthenticatedPapoRetoAprovacoesRoute
   '/_authenticated/papo-reto/cadastrar-horario': typeof AuthenticatedPapoRetoCadastrarHorarioRoute
@@ -351,6 +370,7 @@ export interface FileRoutesById {
   '/_authenticated/ebd/': typeof AuthenticatedEbdIndexRoute
   '/_authenticated/eventos/': typeof AuthenticatedEventosIndexRoute
   '/_authenticated/membros/': typeof AuthenticatedMembrosIndexRoute
+  '/_authenticated/novosprojetos/': typeof AuthenticatedNovosprojetosIndexRoute
   '/_authenticated/papo-reto/': typeof AuthenticatedPapoRetoIndexRoute
   '/_authenticated/perfil/': typeof AuthenticatedPerfilIndexRoute
   '/_authenticated/suporte/': typeof AuthenticatedSuporteIndexRoute
@@ -365,7 +385,6 @@ export interface FileRouteTypes {
     | '/arquivos'
     | '/calendario'
     | '/inicio'
-    | '/novosprojetos'
     | '/configuracoes/sistema'
     | '/configuracoes/usuarios'
     | '/congregacoes/lista'
@@ -376,6 +395,8 @@ export interface FileRouteTypes {
     | '/eventos/painel'
     | '/membros/lista'
     | '/membros/painel'
+    | '/novosprojetos/cronograma'
+    | '/novosprojetos/tarefas'
     | '/papo-reto/agendar'
     | '/papo-reto/aprovacoes'
     | '/papo-reto/cadastrar-horario'
@@ -389,6 +410,7 @@ export interface FileRouteTypes {
     | '/ebd/'
     | '/eventos/'
     | '/membros/'
+    | '/novosprojetos/'
     | '/papo-reto/'
     | '/perfil/'
     | '/suporte/'
@@ -400,7 +422,6 @@ export interface FileRouteTypes {
     | '/arquivos'
     | '/calendario'
     | '/inicio'
-    | '/novosprojetos'
     | '/'
     | '/configuracoes/sistema'
     | '/configuracoes/usuarios'
@@ -412,6 +433,8 @@ export interface FileRouteTypes {
     | '/eventos/painel'
     | '/membros/lista'
     | '/membros/painel'
+    | '/novosprojetos/cronograma'
+    | '/novosprojetos/tarefas'
     | '/papo-reto/agendar'
     | '/papo-reto/aprovacoes'
     | '/papo-reto/cadastrar-horario'
@@ -425,6 +448,7 @@ export interface FileRouteTypes {
     | '/ebd'
     | '/eventos'
     | '/membros'
+    | '/novosprojetos'
     | '/papo-reto'
     | '/perfil'
     | '/suporte'
@@ -437,7 +461,6 @@ export interface FileRouteTypes {
     | '/_authenticated/arquivos'
     | '/_authenticated/calendario'
     | '/_authenticated/inicio'
-    | '/_authenticated/novosprojetos'
     | '/_authenticated/'
     | '/_authenticated/configuracoes/sistema'
     | '/_authenticated/configuracoes/usuarios'
@@ -449,6 +472,8 @@ export interface FileRouteTypes {
     | '/_authenticated/eventos/painel'
     | '/_authenticated/membros/lista'
     | '/_authenticated/membros/painel'
+    | '/_authenticated/novosprojetos/cronograma'
+    | '/_authenticated/novosprojetos/tarefas'
     | '/_authenticated/papo-reto/agendar'
     | '/_authenticated/papo-reto/aprovacoes'
     | '/_authenticated/papo-reto/cadastrar-horario'
@@ -462,6 +487,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ebd/'
     | '/_authenticated/eventos/'
     | '/_authenticated/membros/'
+    | '/_authenticated/novosprojetos/'
     | '/_authenticated/papo-reto/'
     | '/_authenticated/perfil/'
     | '/_authenticated/suporte/'
@@ -516,13 +542,6 @@ declare module '@tanstack/react-router' {
       path: '/inicio'
       fullPath: '/inicio'
       preLoaderRoute: typeof AuthenticatedInicioRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/novosprojetos': {
-      id: '/_authenticated/novosprojetos'
-      path: '/novosprojetos'
-      fullPath: '/novosprojetos'
-      preLoaderRoute: typeof AuthenticatedNovosprojetosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/configuracoes/': {
@@ -630,6 +649,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMembrosPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/novosprojetos/': {
+      id: '/_authenticated/novosprojetos/'
+      path: '/novosprojetos'
+      fullPath: '/novosprojetos/'
+      preLoaderRoute: typeof AuthenticatedNovosprojetosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/novosprojetos/cronograma': {
+      id: '/_authenticated/novosprojetos/cronograma'
+      path: '/novosprojetos/cronograma'
+      fullPath: '/novosprojetos/cronograma'
+      preLoaderRoute: typeof AuthenticatedNovosprojetosCronogramaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/novosprojetos/tarefas': {
+      id: '/_authenticated/novosprojetos/tarefas'
+      path: '/novosprojetos/tarefas'
+      fullPath: '/novosprojetos/tarefas'
+      preLoaderRoute: typeof AuthenticatedNovosprojetosTarefasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/papo-reto/': {
       id: '/_authenticated/papo-reto/'
       path: '/papo-reto'
@@ -728,7 +768,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedArquivosRoute: typeof AuthenticatedArquivosRoute
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
-  AuthenticatedNovosprojetosRoute: typeof AuthenticatedNovosprojetosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedConfiguracoesSistemaRoute: typeof AuthenticatedConfiguracoesSistemaRoute
   AuthenticatedConfiguracoesUsuariosRoute: typeof AuthenticatedConfiguracoesUsuariosRoute
@@ -740,6 +779,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEventosPainelRoute: typeof AuthenticatedEventosPainelRoute
   AuthenticatedMembrosListaRoute: typeof AuthenticatedMembrosListaRoute
   AuthenticatedMembrosPainelRoute: typeof AuthenticatedMembrosPainelRoute
+  AuthenticatedNovosprojetosCronogramaRoute: typeof AuthenticatedNovosprojetosCronogramaRoute
+  AuthenticatedNovosprojetosTarefasRoute: typeof AuthenticatedNovosprojetosTarefasRoute
   AuthenticatedPapoRetoAgendarRoute: typeof AuthenticatedPapoRetoAgendarRoute
   AuthenticatedPapoRetoAprovacoesRoute: typeof AuthenticatedPapoRetoAprovacoesRoute
   AuthenticatedPapoRetoCadastrarHorarioRoute: typeof AuthenticatedPapoRetoCadastrarHorarioRoute
@@ -753,6 +794,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEbdIndexRoute: typeof AuthenticatedEbdIndexRoute
   AuthenticatedEventosIndexRoute: typeof AuthenticatedEventosIndexRoute
   AuthenticatedMembrosIndexRoute: typeof AuthenticatedMembrosIndexRoute
+  AuthenticatedNovosprojetosIndexRoute: typeof AuthenticatedNovosprojetosIndexRoute
   AuthenticatedPapoRetoIndexRoute: typeof AuthenticatedPapoRetoIndexRoute
   AuthenticatedPerfilIndexRoute: typeof AuthenticatedPerfilIndexRoute
   AuthenticatedSuporteIndexRoute: typeof AuthenticatedSuporteIndexRoute
@@ -764,7 +806,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArquivosRoute: AuthenticatedArquivosRoute,
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
-  AuthenticatedNovosprojetosRoute: AuthenticatedNovosprojetosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedConfiguracoesSistemaRoute:
     AuthenticatedConfiguracoesSistemaRoute,
@@ -778,6 +819,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEventosPainelRoute: AuthenticatedEventosPainelRoute,
   AuthenticatedMembrosListaRoute: AuthenticatedMembrosListaRoute,
   AuthenticatedMembrosPainelRoute: AuthenticatedMembrosPainelRoute,
+  AuthenticatedNovosprojetosCronogramaRoute:
+    AuthenticatedNovosprojetosCronogramaRoute,
+  AuthenticatedNovosprojetosTarefasRoute:
+    AuthenticatedNovosprojetosTarefasRoute,
   AuthenticatedPapoRetoAgendarRoute: AuthenticatedPapoRetoAgendarRoute,
   AuthenticatedPapoRetoAprovacoesRoute: AuthenticatedPapoRetoAprovacoesRoute,
   AuthenticatedPapoRetoCadastrarHorarioRoute:
@@ -793,6 +838,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEbdIndexRoute: AuthenticatedEbdIndexRoute,
   AuthenticatedEventosIndexRoute: AuthenticatedEventosIndexRoute,
   AuthenticatedMembrosIndexRoute: AuthenticatedMembrosIndexRoute,
+  AuthenticatedNovosprojetosIndexRoute: AuthenticatedNovosprojetosIndexRoute,
   AuthenticatedPapoRetoIndexRoute: AuthenticatedPapoRetoIndexRoute,
   AuthenticatedPerfilIndexRoute: AuthenticatedPerfilIndexRoute,
   AuthenticatedSuporteIndexRoute: AuthenticatedSuporteIndexRoute,

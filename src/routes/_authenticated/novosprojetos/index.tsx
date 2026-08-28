@@ -26,9 +26,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { dataParaBR, mensagemErro } from "@/lib/formato";
 import { podeVer } from "@/lib/nav";
+import { criarTarefasPadrao } from "@/lib/tarefas";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/novosprojetos")({
+export const Route = createFileRoute("/_authenticated/novosprojetos/")({
   head: () => ({
     meta: [
       { title: "Novos projetos — AD CRM | Jovens e Teens AD" },
@@ -247,6 +248,14 @@ function NovosProjetos() {
         .select("id")
         .single();
       if (error) throw error;
+
+      // O projeto nasce com as fases padrão do ministério em Tarefas.
+      try {
+        await criarTarefasPadrao(data.id);
+      } catch {
+        // Sem as tarefas o projeto ainda serve; a tela de Tarefas avisa.
+      }
+
       await registrarAuditoria({
         acao: "criou",
         entidade: "projeto",
