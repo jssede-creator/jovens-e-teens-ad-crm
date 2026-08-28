@@ -25,7 +25,6 @@ import { Route as AuthenticatedCongregacoesPainelRouteImport } from './routes/_a
 import { Route as AuthenticatedEbdIndexRouteImport } from './routes/_authenticated/ebd/index'
 import { Route as AuthenticatedEbdCadastrarAulasRouteImport } from './routes/_authenticated/ebd/cadastrar-aulas'
 import { Route as AuthenticatedEbdPainelRouteImport } from './routes/_authenticated/ebd/painel'
-import { Route as AuthenticatedEbdTurmasRouteImport } from './routes/_authenticated/ebd/turmas'
 import { Route as AuthenticatedMembrosIndexRouteImport } from './routes/_authenticated/membros/index'
 import { Route as AuthenticatedMembrosListaRouteImport } from './routes/_authenticated/membros/lista'
 import { Route as AuthenticatedMembrosPainelRouteImport } from './routes/_authenticated/membros/painel'
@@ -40,6 +39,8 @@ import { Route as AuthenticatedPerfilPainelAdmRouteImport } from './routes/_auth
 import { Route as AuthenticatedSuporteIndexRouteImport } from './routes/_authenticated/suporte/index'
 import { Route as AuthenticatedSuporteAjudaRouteImport } from './routes/_authenticated/suporte/ajuda'
 import { Route as AuthenticatedSuporteAuditoriaRouteImport } from './routes/_authenticated/suporte/auditoria'
+import { Route as AuthenticatedEbdClassesIndexRouteImport } from './routes/_authenticated/ebd/classes/index'
+import { Route as AuthenticatedEbdClassesTurmaIdRouteImport } from './routes/_authenticated/ebd/classes/$turmaId'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -128,11 +129,6 @@ const AuthenticatedEbdPainelRoute = AuthenticatedEbdPainelRouteImport.update({
   path: '/ebd/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedEbdTurmasRoute = AuthenticatedEbdTurmasRouteImport.update({
-  id: '/ebd/turmas',
-  path: '/ebd/turmas',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedMembrosIndexRoute =
   AuthenticatedMembrosIndexRouteImport.update({
     id: '/membros/',
@@ -217,6 +213,18 @@ const AuthenticatedSuporteAuditoriaRoute =
     path: '/suporte/auditoria',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEbdClassesIndexRoute =
+  AuthenticatedEbdClassesIndexRouteImport.update({
+    id: '/ebd/classes/',
+    path: '/ebd/classes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEbdClassesTurmaIdRoute =
+  AuthenticatedEbdClassesTurmaIdRouteImport.update({
+    id: '/ebd/classes/$turmaId',
+    path: '/ebd/classes/$turmaId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -231,7 +239,6 @@ export interface FileRoutesByFullPath {
   '/congregacoes/painel': typeof AuthenticatedCongregacoesPainelRoute
   '/ebd/cadastrar-aulas': typeof AuthenticatedEbdCadastrarAulasRoute
   '/ebd/painel': typeof AuthenticatedEbdPainelRoute
-  '/ebd/turmas': typeof AuthenticatedEbdTurmasRoute
   '/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/membros/painel': typeof AuthenticatedMembrosPainelRoute
   '/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
@@ -249,6 +256,8 @@ export interface FileRoutesByFullPath {
   '/papo-reto/': typeof AuthenticatedPapoRetoIndexRoute
   '/perfil/': typeof AuthenticatedPerfilIndexRoute
   '/suporte/': typeof AuthenticatedSuporteIndexRoute
+  '/ebd/classes/$turmaId': typeof AuthenticatedEbdClassesTurmaIdRoute
+  '/ebd/classes/': typeof AuthenticatedEbdClassesIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -263,7 +272,6 @@ export interface FileRoutesByTo {
   '/congregacoes/painel': typeof AuthenticatedCongregacoesPainelRoute
   '/ebd/cadastrar-aulas': typeof AuthenticatedEbdCadastrarAulasRoute
   '/ebd/painel': typeof AuthenticatedEbdPainelRoute
-  '/ebd/turmas': typeof AuthenticatedEbdTurmasRoute
   '/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/membros/painel': typeof AuthenticatedMembrosPainelRoute
   '/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
@@ -281,6 +289,8 @@ export interface FileRoutesByTo {
   '/papo-reto': typeof AuthenticatedPapoRetoIndexRoute
   '/perfil': typeof AuthenticatedPerfilIndexRoute
   '/suporte': typeof AuthenticatedSuporteIndexRoute
+  '/ebd/classes/$turmaId': typeof AuthenticatedEbdClassesTurmaIdRoute
+  '/ebd/classes': typeof AuthenticatedEbdClassesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -297,7 +307,6 @@ export interface FileRoutesById {
   '/_authenticated/congregacoes/painel': typeof AuthenticatedCongregacoesPainelRoute
   '/_authenticated/ebd/cadastrar-aulas': typeof AuthenticatedEbdCadastrarAulasRoute
   '/_authenticated/ebd/painel': typeof AuthenticatedEbdPainelRoute
-  '/_authenticated/ebd/turmas': typeof AuthenticatedEbdTurmasRoute
   '/_authenticated/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/_authenticated/membros/painel': typeof AuthenticatedMembrosPainelRoute
   '/_authenticated/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
@@ -315,6 +324,8 @@ export interface FileRoutesById {
   '/_authenticated/papo-reto/': typeof AuthenticatedPapoRetoIndexRoute
   '/_authenticated/perfil/': typeof AuthenticatedPerfilIndexRoute
   '/_authenticated/suporte/': typeof AuthenticatedSuporteIndexRoute
+  '/_authenticated/ebd/classes/$turmaId': typeof AuthenticatedEbdClassesTurmaIdRoute
+  '/_authenticated/ebd/classes/': typeof AuthenticatedEbdClassesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -331,7 +342,6 @@ export interface FileRouteTypes {
     | '/congregacoes/painel'
     | '/ebd/cadastrar-aulas'
     | '/ebd/painel'
-    | '/ebd/turmas'
     | '/membros/lista'
     | '/membros/painel'
     | '/papo-reto/agendar'
@@ -349,6 +359,8 @@ export interface FileRouteTypes {
     | '/papo-reto/'
     | '/perfil/'
     | '/suporte/'
+    | '/ebd/classes/$turmaId'
+    | '/ebd/classes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -363,7 +375,6 @@ export interface FileRouteTypes {
     | '/congregacoes/painel'
     | '/ebd/cadastrar-aulas'
     | '/ebd/painel'
-    | '/ebd/turmas'
     | '/membros/lista'
     | '/membros/painel'
     | '/papo-reto/agendar'
@@ -381,6 +392,8 @@ export interface FileRouteTypes {
     | '/papo-reto'
     | '/perfil'
     | '/suporte'
+    | '/ebd/classes/$turmaId'
+    | '/ebd/classes'
   id:
     | '__root__'
     | '/_authenticated'
@@ -396,7 +409,6 @@ export interface FileRouteTypes {
     | '/_authenticated/congregacoes/painel'
     | '/_authenticated/ebd/cadastrar-aulas'
     | '/_authenticated/ebd/painel'
-    | '/_authenticated/ebd/turmas'
     | '/_authenticated/membros/lista'
     | '/_authenticated/membros/painel'
     | '/_authenticated/papo-reto/agendar'
@@ -414,6 +426,8 @@ export interface FileRouteTypes {
     | '/_authenticated/papo-reto/'
     | '/_authenticated/perfil/'
     | '/_authenticated/suporte/'
+    | '/_authenticated/ebd/classes/$turmaId'
+    | '/_authenticated/ebd/classes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -535,13 +549,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEbdPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/ebd/turmas': {
-      id: '/_authenticated/ebd/turmas'
-      path: '/ebd/turmas'
-      fullPath: '/ebd/turmas'
-      preLoaderRoute: typeof AuthenticatedEbdTurmasRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/membros/': {
       id: '/_authenticated/membros/'
       path: '/membros'
@@ -640,6 +647,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSuporteAuditoriaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ebd/classes/': {
+      id: '/_authenticated/ebd/classes/'
+      path: '/ebd/classes'
+      fullPath: '/ebd/classes/'
+      preLoaderRoute: typeof AuthenticatedEbdClassesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ebd/classes/$turmaId': {
+      id: '/_authenticated/ebd/classes/$turmaId'
+      path: '/ebd/classes/$turmaId'
+      fullPath: '/ebd/classes/$turmaId'
+      preLoaderRoute: typeof AuthenticatedEbdClassesTurmaIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -655,7 +676,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCongregacoesPainelRoute: typeof AuthenticatedCongregacoesPainelRoute
   AuthenticatedEbdCadastrarAulasRoute: typeof AuthenticatedEbdCadastrarAulasRoute
   AuthenticatedEbdPainelRoute: typeof AuthenticatedEbdPainelRoute
-  AuthenticatedEbdTurmasRoute: typeof AuthenticatedEbdTurmasRoute
   AuthenticatedMembrosListaRoute: typeof AuthenticatedMembrosListaRoute
   AuthenticatedMembrosPainelRoute: typeof AuthenticatedMembrosPainelRoute
   AuthenticatedPapoRetoAgendarRoute: typeof AuthenticatedPapoRetoAgendarRoute
@@ -673,6 +693,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPapoRetoIndexRoute: typeof AuthenticatedPapoRetoIndexRoute
   AuthenticatedPerfilIndexRoute: typeof AuthenticatedPerfilIndexRoute
   AuthenticatedSuporteIndexRoute: typeof AuthenticatedSuporteIndexRoute
+  AuthenticatedEbdClassesTurmaIdRoute: typeof AuthenticatedEbdClassesTurmaIdRoute
+  AuthenticatedEbdClassesIndexRoute: typeof AuthenticatedEbdClassesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -689,7 +711,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCongregacoesPainelRoute: AuthenticatedCongregacoesPainelRoute,
   AuthenticatedEbdCadastrarAulasRoute: AuthenticatedEbdCadastrarAulasRoute,
   AuthenticatedEbdPainelRoute: AuthenticatedEbdPainelRoute,
-  AuthenticatedEbdTurmasRoute: AuthenticatedEbdTurmasRoute,
   AuthenticatedMembrosListaRoute: AuthenticatedMembrosListaRoute,
   AuthenticatedMembrosPainelRoute: AuthenticatedMembrosPainelRoute,
   AuthenticatedPapoRetoAgendarRoute: AuthenticatedPapoRetoAgendarRoute,
@@ -709,6 +730,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPapoRetoIndexRoute: AuthenticatedPapoRetoIndexRoute,
   AuthenticatedPerfilIndexRoute: AuthenticatedPerfilIndexRoute,
   AuthenticatedSuporteIndexRoute: AuthenticatedSuporteIndexRoute,
+  AuthenticatedEbdClassesTurmaIdRoute: AuthenticatedEbdClassesTurmaIdRoute,
+  AuthenticatedEbdClassesIndexRoute: AuthenticatedEbdClassesIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
