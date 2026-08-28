@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      arquivos: {
+        Row: {
+          caminho: string
+          created_at: string
+          enviado_por: string | null
+          enviado_por_nome: string | null
+          id: string
+          nome: string
+          pasta_id: string | null
+          tamanho: number
+          tipo: string | null
+        }
+        Insert: {
+          caminho: string
+          created_at?: string
+          enviado_por?: string | null
+          enviado_por_nome?: string | null
+          id?: string
+          nome: string
+          pasta_id?: string | null
+          tamanho?: number
+          tipo?: string | null
+        }
+        Update: {
+          caminho?: string
+          created_at?: string
+          enviado_por?: string | null
+          enviado_por_nome?: string | null
+          id?: string
+          nome?: string
+          pasta_id?: string | null
+          tamanho?: number
+          tipo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arquivos_pasta_id_fkey"
+            columns: ["pasta_id"]
+            isOneToOne: false
+            referencedRelation: "arquivos_pastas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arquivos_pastas: {
+        Row: {
+          created_at: string
+          criado_por: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       auditoria: {
         Row: {
           acao: string
@@ -391,6 +456,131 @@ export type Database = {
           granted_by?: string | null
           module_key?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      papo_reto_agendamentos: {
+        Row: {
+          assunto: string
+          created_at: string
+          data: string
+          hora_fim: string
+          hora_inicio: string
+          horario_id: string | null
+          id: string
+          mensagem: string | null
+          resposta: string | null
+          solicitante_email: string
+          solicitante_nome: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assunto: string
+          created_at?: string
+          data: string
+          hora_fim: string
+          hora_inicio: string
+          horario_id?: string | null
+          id?: string
+          mensagem?: string | null
+          resposta?: string | null
+          solicitante_email: string
+          solicitante_nome: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assunto?: string
+          created_at?: string
+          data?: string
+          hora_fim?: string
+          hora_inicio?: string
+          horario_id?: string | null
+          id?: string
+          mensagem?: string | null
+          resposta?: string | null
+          solicitante_email?: string
+          solicitante_nome?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "papo_reto_agendamentos_horario_id_fkey"
+            columns: ["horario_id"]
+            isOneToOne: false
+            referencedRelation: "papo_reto_horarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      papo_reto_horarios: {
+        Row: {
+          created_at: string
+          criado_por: string | null
+          data: string
+          hora_fim: string
+          hora_inicio: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por?: string | null
+          data: string
+          hora_fim: string
+          hora_inicio: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string | null
+          data?: string
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      projetos: {
+        Row: {
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          id: string
+          ordem: number
+          prazo: string | null
+          responsavel: string | null
+          status: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          ordem?: number
+          prazo?: string | null
+          responsavel?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          ordem?: number
+          prazo?: string | null
+          responsavel?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
         }
         Relationships: []
       }
