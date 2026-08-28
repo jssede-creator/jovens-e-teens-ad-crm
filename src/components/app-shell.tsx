@@ -2,7 +2,6 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
-  Instagram,
   ChevronDown,
   ChevronRight,
   LogOut,
@@ -112,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-jt-bg-top">
+    <div className="h-screen overflow-hidden bg-jt-bg-top">
       {largura !== "compacto" ? (
         <aside
           className={cn(
@@ -146,11 +145,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div
         className={cn(
-          "transition-[padding] duration-200",
+          "flex h-screen flex-col transition-[padding] duration-200",
           largura === "compacto" ? "pl-0" : recolhida ? "pl-[68px]" : "pl-64",
         )}
       >
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-jt-line bg-jt-panel/80 px-3 backdrop-blur sm:px-4">
+        <header className="z-20 flex h-14 shrink-0 items-center gap-3 border-b border-jt-line bg-jt-panel/80 px-3 backdrop-blur sm:px-4">
           <button
             onClick={alternarBarra}
             aria-label={recolhida ? "Expandir barra lateral" : "Recolher barra lateral"}
@@ -223,11 +222,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6">
+        <main className="mx-auto w-full max-w-[1400px] flex-1 overflow-y-auto px-4 py-5 sm:px-6">
           {trilha.length > 0 ? (
             <nav
               aria-label="Migalhas de pão"
-              className="mb-4 flex flex-wrap items-center gap-1 text-sm"
+              className="mb-3 flex flex-wrap items-center gap-1 text-sm"
             >
               {trilha.map((m, i) => (
                 <span key={`${m.rotulo}-${i}`} className="flex items-center gap-1">
@@ -245,19 +244,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           ) : null}
           {children}
         </main>
-
-        <footer className="mt-8 flex flex-wrap items-center justify-center gap-3 border-t border-jt-line px-4 py-6">
-          <span className="font-display text-sm font-semibold text-jt-text">Nós Somos Um!</span>
-          <a
-            href="https://instagram.com/jovensteens.ad"
-            target="_blank"
-            rel="noreferrer noopener"
-            aria-label="Instagram do Jovens e Teens AD"
-            className="grid h-8 w-8 place-items-center rounded-full border border-jt-line text-jt-muted transition hover:bg-jt-panel-2 hover:text-jt-text"
-          >
-            <Instagram className="h-4 w-4" aria-hidden />
-          </a>
-        </footer>
       </div>
     </div>
   );

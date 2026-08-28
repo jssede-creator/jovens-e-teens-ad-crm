@@ -44,12 +44,12 @@ function CartaoResumo({
   rodape: string;
 }) {
   return (
-    <div className="rounded-[20px] border border-jt-line bg-jt-panel p-5">
+    <div className="rounded-[20px] border border-jt-line bg-jt-panel p-4">
       <p className="flex items-center gap-2 text-xs text-jt-muted">
         <Icone className="h-4 w-4" aria-hidden />
         {rotulo}
       </p>
-      <p className="num mt-2 truncate text-2xl font-bold leading-tight text-jt-text">{valor}</p>
+      <p className="num mt-1.5 truncate text-xl font-bold leading-tight text-jt-text">{valor}</p>
       <p className="mt-1 text-xs text-jt-muted">{rodape}</p>
     </div>
   );
@@ -121,14 +121,14 @@ function MenuInicial() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <p className="text-sm text-jt-text">
         {saudacao()}
         {nome ? `, ${nome}` : ""}. Tudo o que você acessa no CRM começa por aqui.
       </p>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
-        <Bloco className="flex flex-col">
+      <div className="grid items-start gap-4 lg:grid-cols-[1fr_360px]">
+        <Bloco>
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-jt-blue/10 text-jt-blue">
               <Sparkles className="h-5 w-5" aria-hidden />
@@ -138,7 +138,7 @@ function MenuInicial() {
             </h2>
           </div>
 
-          <p className="mt-3 max-w-lg text-sm text-jt-muted">
+          <p className="mt-2.5 max-w-lg text-sm text-jt-muted">
             {!d?.temCadastro
               ? "Você ainda não preencheu o cadastro do ministério. Leva poucos minutos."
               : d.completo
@@ -146,7 +146,7 @@ function MenuInicial() {
                 : "Falta a parte complementar do seu cadastro: estudo, trabalho e composição familiar."}
           </p>
 
-          <div className="mt-auto pt-6">
+          <div className="mt-5">
             <div className="flex items-baseline justify-between text-xs text-jt-muted">
               <span className="num">{etapas} de 2 etapas concluídas</span>
               <span className="num">{percentual}%</span>
@@ -167,7 +167,7 @@ function MenuInicial() {
           </div>
         </Bloco>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <CartaoResumo
             icone={ClipboardCheck}
             rotulo="Situação do cadastro"
@@ -196,8 +196,8 @@ function MenuInicial() {
       </div>
 
       <section>
-        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-display text-lg font-semibold text-jt-text">Acesso rápido</h2>
+        <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-base font-semibold text-jt-text">Acesso rápido</h2>
           <span className="text-xs text-jt-muted">{areas.length} áreas liberadas para você</span>
         </div>
 
@@ -208,7 +208,7 @@ function MenuInicial() {
               <Link
                 key={item.rota}
                 to={item.rota}
-                className="flex items-start gap-3 rounded-[20px] border border-jt-line bg-jt-panel p-4 transition hover:bg-jt-panel-2"
+                className="flex items-start gap-3 rounded-[20px] border border-jt-line bg-jt-panel p-3.5 transition hover:bg-jt-panel-2"
               >
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-jt-panel-2 text-jt-muted">
                   <Icone className="h-5 w-5" aria-hidden />
