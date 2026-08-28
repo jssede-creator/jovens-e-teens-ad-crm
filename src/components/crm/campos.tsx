@@ -26,6 +26,13 @@ const alturaControle =
 
 export type Opcao = { valor: string; rotulo: string };
 
+/**
+ * O Radix trata string vazia como "sem valor" e não aceita item com value "".
+ * Este sentinela mantém o campo controlado desde o primeiro render — sem ele o
+ * select nasce não-controlado e a escolha podia não chegar ao formulário.
+ */
+const SEM_VALOR = "__sem_valor__";
+
 export function SelectCampo({
   opcoes,
   valor,
@@ -43,8 +50,8 @@ export function SelectCampo({
 }) {
   return (
     <Select
-      onValueChange={onValueChange}
-      {...(valor ? { value: valor } : {})}
+      value={valor || SEM_VALOR}
+      onValueChange={(v) => onValueChange(v === SEM_VALOR ? "" : v)}
       {...(disabled ? { disabled: true } : {})}
     >
       <SelectTrigger

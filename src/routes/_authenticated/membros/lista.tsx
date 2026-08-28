@@ -1,6 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Church, Download, Plus, Upload, UserPlus } from "lucide-react";
+import {
+  CheckCircle2,
+  Church,
+  Download,
+  MailPlus,
+  Pencil,
+  Plus,
+  Upload,
+  UserPlus,
+} from "lucide-react";
 import { Fragment, useMemo, useRef, useState } from "react";
 
 import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
@@ -47,6 +56,7 @@ import { useAcesso } from "@/hooks/use-acesso";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { registrarAuditoria } from "@/lib/auditoria";
+import { convidarPessoa } from "@/lib/convite.functions";
 import { idadeEm, iniciais } from "@/lib/ebd";
 import { dataCurta, dataParaBR, dataParaISO, mensagemErro, semMascara } from "@/lib/formato";
 import { podeVer } from "@/lib/nav";
@@ -69,14 +79,22 @@ export const Route = createFileRoute("/_authenticated/membros/lista")({
 
 type Membro = {
   id: string;
+  userId: string | null;
   nome: string;
+  congregacaoId: string;
   congregacao: string;
   completo: boolean;
   nascimento: string;
   cpf: string;
+  rg: string;
   telefone: string;
   email: string;
+  endereco: string;
+  numero: string;
+  complemento: string;
+  pontoReferencia: string;
   cidade: string;
+  cep: string;
   cadastro: string;
 };
 
@@ -109,7 +127,21 @@ function alternarNoSet<T>(conjunto: Set<T>, valor: T, marcado: boolean) {
   return proximo;
 }
 
-function MembroRow({ linha, colunas }: { linha: Membro; colunas: Set<ColunaKey> }) {
+function MembroRow({
+  linha,
+  colunas,
+  podeGerenciar,
+  convidando,
+  onEditar,
+  onConvidar,
+}: {
+  linha: Membro;
+  colunas: Set<ColunaKey>;
+  podeGerenciar: boolean;
+  convidando: boolean;
+  onEditar: (m: Membro) => void;
+  onConvidar: (m: Membro) => void;
+}) {
   const idade = idadeEm(linha.nascimento);
   return (
     <TableRow className="border-jt-line hover:bg-jt-panel-2">
@@ -171,6 +203,43 @@ function MembroRow({ linha, colunas }: { linha: Membro; colunas: Set<ColunaKey> 
           {dataParaBR(linha.cadastro.slice(0, 10))}
         </TableCell>
       ) : null}
+
+      <TableCell>
+        {!podeGerenciar ? (
+          <span className="text-jt-muted">—</span>
+        ) : (
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              aria-label={`Editar ${linha.nome}`}
+              title="Editar cadastro"
+              onClick={() => onEditar(linha)}
+              className="grid h-7 w-7 place-items-center rounded-full text-jt-muted transition hover:bg-jt-panel-2 hover:text-jt-text"
+            >
+              <Pencil className="h-3.5 w-3.5" aria-hidden />
+            </button>
+            {linha.userId ? (
+              <span
+                title="Já tem acesso ao CRM"
+                className="grid h-7 w-7 place-items-center rounded-full text-jt-success"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+              </span>
+            ) : (
+              <button
+                type="button"
+                disabled={convidando}
+                aria-label={`Enviar convite para ${linha.nome}`}
+                title="Enviar convite de acesso ao CRM"
+                onClick={() => onConvidar(linha)}
+                className="grid h-7 w-7 place-items-center rounded-full text-jt-muted transition hover:bg-jt-panel-2 hover:text-jt-blue disabled:opacity-40"
+              >
+                <MailPlus className="h-3.5 w-3.5" aria-hidden />
+              </button>
+            )}
+          </div>
+        )}
+      </TableCell>
     </TableRow>
   );
 }
@@ -192,9 +261,10 @@ const FORM_MEMBRO = {
 };
 type FormMembro = typeof FORM_MEMBRO;
 
-function NovoMembroDialog({
+function MembroDialog({
   aberto,
   onOpenChange,
+  editando,
   congregacoes,
   onSalvar,
   salvando,
@@ -202,6 +272,7 @@ function NovoMembroDialog({
 }: {
   aberto: boolean;
   onOpenChange: (v: boolean) => void;
+  editando: Membro | null;
   congregacoes: { id: string; nome: string }[];
   onSalvar: (form: FormMembro, lgpd: boolean) => void;
   salvando: boolean;
@@ -210,15 +281,33 @@ function NovoMembroDialog({
   const [form, setForm] = useState<FormMembro>(FORM_MEMBRO);
   const [lgpd, setLgpd] = useState(false);
   const [erros, setErros] = useState<Record<string, string>>({});
-  const [chaveAtual, setChaveAtual] = useState(false);
+  const [chaveAtual, setChaveAtual] = useState<string | null>(null);
 
-  if (aberto !== chaveAtual) {
-    setChaveAtual(aberto);
-    if (aberto) {
-      setForm(FORM_MEMBRO);
-      setErros({});
-      setLgpd(false);
-    }
+  const chave = aberto ? (editando?.id ?? "novo") : null;
+  if (chave !== chaveAtual) {
+    setChaveAtual(chave);
+    setErros({});
+    // Em edição o aceite já foi dado quando o cadastro entrou.
+    setLgpd(Boolean(editando));
+    setForm(
+      editando
+        ? {
+            nome_completo: editando.nome,
+            data_nascimento: editando.nascimento,
+            cpf: editando.cpf,
+            rg: editando.rg,
+            telefone: editando.telefone,
+            email: editando.email,
+            congregacao_id: editando.congregacaoId,
+            endereco: editando.endereco,
+            numero: editando.numero,
+            complemento: editando.complemento,
+            ponto_referencia: editando.pontoReferencia,
+            cidade: editando.cidade,
+            cep: editando.cep,
+          }
+        : FORM_MEMBRO,
+    );
   }
 
   const campo = <K extends keyof FormMembro>(nome: K, valor: FormMembro[K]) => {
@@ -253,11 +342,12 @@ function NovoMembroDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-display">
             <UserPlus className="h-5 w-5 text-jt-gold" aria-hidden />
-            Novo membro
+            {editando ? "Editar membro" : "Novo membro"}
           </DialogTitle>
           <DialogDescription className="text-jt-muted">
-            O cadastro entra completo na lista; a pessoa pode complementar depois com os dados
-            socioeconômicos.
+            {editando
+              ? "Os dados socioeconômicos continuam sendo preenchidos pela própria pessoa."
+              : "O cadastro entra completo na lista; a pessoa pode complementar depois com os dados socioeconômicos."}
           </DialogDescription>
         </DialogHeader>
 
@@ -361,23 +451,27 @@ function NovoMembroDialog({
             </Field>
           </div>
 
-          <label
-            className={cn(
-              "flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-xs transition",
-              lgpd ? "border-jt-success/50 bg-green-50/50 dark:bg-green-950/20" : "border-jt-line",
-            )}
-          >
-            <input
-              type="checkbox"
-              checked={lgpd}
-              onChange={(e) => setLgpd(e.target.checked)}
-              className="mt-0.5"
-            />
-            <span className="text-jt-muted">
-              <span className="block font-medium text-jt-text">Aceite da LGPD</span>
-              Confirmo que essa pessoa autorizou o uso dos dados pelo ministério.
-            </span>
-          </label>
+          {editando ? null : (
+            <label
+              className={cn(
+                "flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-xs transition",
+                lgpd
+                  ? "border-jt-success/50 bg-green-50/50 dark:bg-green-950/20"
+                  : "border-jt-line",
+              )}
+            >
+              <input
+                type="checkbox"
+                checked={lgpd}
+                onChange={(e) => setLgpd(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span className="text-jt-muted">
+                <span className="block font-medium text-jt-text">Aceite da LGPD</span>
+                Confirmo que essa pessoa autorizou o uso dos dados pelo ministério.
+              </span>
+            </label>
+          )}
 
           {erro ? <p className="text-xs text-jt-coral">{erro}</p> : null}
         </div>
@@ -387,7 +481,7 @@ function NovoMembroDialog({
             Cancelar
           </PillButton>
           <PillButton onClick={enviar} disabled={salvando || !lgpd}>
-            {salvando ? "Salvando…" : "Cadastrar membro"}
+            {salvando ? "Salvando…" : editando ? "Salvar alterações" : "Cadastrar membro"}
           </PillButton>
         </DialogFooter>
       </DialogContent>
@@ -574,7 +668,9 @@ function MembrosLista() {
   const [tamanhoPagina, setTamanhoPagina] = useState(10);
   const [importar, setImportar] = useState(false);
   const [novoMembro, setNovoMembro] = useState(false);
+  const [editando, setEditando] = useState<Membro | null>(null);
   const [erroNovo, setErroNovo] = useState("");
+  const [avisoConvite, setAvisoConvite] = useState("");
   const [resultadoImport, setResultadoImport] = useState("");
 
   const consulta = useQuery({
@@ -585,7 +681,7 @@ function MembrosLista() {
         supabase
           .from("cadastros")
           .select(
-            "id, nome_completo, congregacao_id, compartilhou_dados_complementares, data_nascimento, cpf, telefone, email, cidade, data_cadastro",
+            "id, user_id, nome_completo, congregacao_id, compartilhou_dados_complementares, data_nascimento, cpf, rg, telefone, email, endereco, numero, complemento, cidade, cep, data_cadastro",
           )
           .order("nome_completo"),
         supabase.from("congregacoes").select("id, nome").order("nome"),
@@ -596,14 +692,22 @@ function MembrosLista() {
       const nomePorId = new Map((congregacoes.data ?? []).map((c) => [c.id, c.nome]));
       const linhas: Membro[] = (cadastros.data ?? []).map((c) => ({
         id: c.id,
+        userId: c.user_id,
         nome: c.nome_completo,
+        congregacaoId: c.congregacao_id ?? "",
         congregacao: c.congregacao_id ? (nomePorId.get(c.congregacao_id) ?? "—") : "—",
         completo: c.compartilhou_dados_complementares,
         nascimento: c.data_nascimento,
         cpf: c.cpf,
+        rg: c.rg,
         telefone: c.telefone,
         email: c.email,
+        endereco: c.endereco,
+        numero: c.numero ?? "",
+        complemento: c.complemento ?? "",
+        pontoReferencia: (c as { ponto_referencia?: string | null }).ponto_referencia ?? "",
         cidade: c.cidade,
+        cep: c.cep,
         cadastro: c.data_cadastro,
       }));
       return { linhas, congregacoes: congregacoes.data ?? [] };
@@ -617,7 +721,7 @@ function MembrosLista() {
     mutationFn: async ({ form, lgpd }: { form: FormMembro; lgpd: boolean }) => {
       if (!lgpd) throw new Error("lgpd");
       const base = {
-        user_id: null,
+        ...(editando ? {} : { user_id: null }),
         nome_completo: form.nome_completo.trim(),
         data_nascimento: form.data_nascimento,
         cpf: form.cpf,
@@ -634,15 +738,33 @@ function MembrosLista() {
         lgpd_aceito: true,
       };
       const referencia = form.ponto_referencia.trim();
+      const comReferencia = { ...base, ...(referencia ? { ponto_referencia: referencia } : {}) };
+
+      if (editando) {
+        let { error } = await supabase
+          .from("cadastros")
+          .update(comReferencia as never)
+          .eq("id", editando.id);
+        // A coluna ponto_referencia entra pela migração 20260828230000; enquanto
+        // o banco não a tiver, o cadastro segue sem ela em vez de falhar.
+        if (error?.code === "PGRST204" && referencia) {
+          ({ error } = await supabase.from("cadastros").update(base).eq("id", editando.id));
+        }
+        if (error) throw error;
+        await registrarAuditoria({
+          acao: "editou",
+          entidade: "cadastro",
+          entidadeId: editando.id,
+          detalhe: form.nome_completo.trim(),
+        });
+        return;
+      }
 
       let { data, error } = await supabase
         .from("cadastros")
-        .insert({ ...base, ...(referencia ? { ponto_referencia: referencia } : {}) } as never)
+        .insert(comReferencia as never)
         .select("id")
         .single();
-
-      // A coluna ponto_referencia entra pela migração 20260828230000; enquanto o
-      // banco não a tiver, o cadastro segue sem ela em vez de falhar.
       if (error?.code === "PGRST204" && referencia) {
         ({ data, error } = await supabase.from("cadastros").insert(base).select("id").single());
       }
@@ -656,6 +778,7 @@ function MembrosLista() {
     },
     onSuccess: async () => {
       setNovoMembro(false);
+      setEditando(null);
       setErroNovo("");
       await queryClient.invalidateQueries({ queryKey: ["membros-lista"] });
       await queryClient.invalidateQueries({ queryKey: ["membros-painel"] });
@@ -663,6 +786,28 @@ function MembrosLista() {
     },
     onError: (e) =>
       setErroNovo((e as Error).message === "lgpd" ? "Confirme o aceite da LGPD." : mensagemErro(e)),
+  });
+
+  const convidar = useMutation({
+    mutationFn: async (membro: Membro) => {
+      const r = await convidarPessoa({ data: { email: membro.email, nome: membro.nome } });
+      if (!r.enviado) throw new Error("convite");
+      await registrarAuditoria({
+        acao: "convidou",
+        entidade: "cadastro",
+        entidadeId: membro.id,
+        detalhe: membro.email,
+      });
+      return membro;
+    },
+    onSuccess: (membro) => {
+      setErroNovo("");
+      setAvisoConvite(`Convite enviado para ${membro.email}. A pessoa define a senha pelo link.`);
+    },
+    onError: () =>
+      setErroNovo(
+        "Não foi possível enviar o convite. Confira se o e-mail está certo e se a conta ainda não existe.",
+      ),
   });
 
   const importacao = useMutation({
@@ -787,7 +932,7 @@ function MembrosLista() {
     return [...mapa];
   }, [daPagina]);
 
-  const colSpan = 1 + colunas.size;
+  const colSpan = 2 + colunas.size;
 
   const ordenar = (chave: OrdemKey) => {
     if (chave === ordem) setDirecao((d) => (d === "asc" ? "desc" : "asc"));
@@ -795,6 +940,12 @@ function MembrosLista() {
       setOrdem(chave);
       setDirecao("asc");
     }
+  };
+
+  const abrirEdicao = (m: Membro) => {
+    setEditando(m);
+    setErroNovo("");
+    setNovoMembro(true);
   };
 
   const exportar = () => {
@@ -861,6 +1012,9 @@ function MembrosLista() {
           </Badge>
         }
       />
+
+      {erroNovo && !novoMembro ? <p className="mb-3 text-xs text-jt-coral">{erroNovo}</p> : null}
+      {avisoConvite ? <p className="mb-3 text-xs text-jt-success">{avisoConvite}</p> : null}
 
       <TableShell>
         <TableToolbar>
@@ -936,6 +1090,7 @@ function MembrosLista() {
                 </PillButton>
                 <PillButton
                   onClick={() => {
+                    setEditando(null);
                     setErroNovo("");
                     setNovoMembro(true);
                   }}
@@ -1005,6 +1160,7 @@ function MembrosLista() {
                     onOrdenar={ordenar}
                   />
                 ) : null}
+                <TableHead className="text-jt-muted">Ações</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -1034,11 +1190,31 @@ function MembrosLista() {
                     />
                     {recolhidos.has(congregacao)
                       ? null
-                      : doGrupo.map((m) => <MembroRow key={m.id} linha={m} colunas={colunas} />)}
+                      : doGrupo.map((m) => (
+                          <MembroRow
+                            key={m.id}
+                            linha={m}
+                            colunas={colunas}
+                            podeGerenciar={podeGerenciar}
+                            convidando={convidar.isPending}
+                            onEditar={abrirEdicao}
+                            onConvidar={(alvo) => convidar.mutate(alvo)}
+                          />
+                        ))}
                   </Fragment>
                 ))
               ) : (
-                daPagina.map((m) => <MembroRow key={m.id} linha={m} colunas={colunas} />)
+                daPagina.map((m) => (
+                  <MembroRow
+                    key={m.id}
+                    linha={m}
+                    colunas={colunas}
+                    podeGerenciar={podeGerenciar}
+                    convidando={convidar.isPending}
+                    onEditar={abrirEdicao}
+                    onConvidar={(alvo) => convidar.mutate(alvo)}
+                  />
+                ))
               )}
             </TableBody>
           </Table>
@@ -1058,9 +1234,13 @@ function MembrosLista() {
         />
       </TableShell>
 
-      <NovoMembroDialog
+      <MembroDialog
         aberto={novoMembro}
-        onOpenChange={setNovoMembro}
+        onOpenChange={(v) => {
+          setNovoMembro(v);
+          if (!v) setEditando(null);
+        }}
+        editando={editando}
         congregacoes={congregacoes}
         onSalvar={(form, lgpd) => criarMembro.mutate({ form, lgpd })}
         salvando={criarMembro.isPending}
