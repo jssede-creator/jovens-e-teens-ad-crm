@@ -451,6 +451,11 @@ export type Database = {
           observacao: string | null
           status: string
           user_id: string
+          codigo: string | null
+          confirmado_em: string | null
+          confirmado_por: string | null
+          confirmado_por_nome: string | null
+          pagamento: string
         }
         Insert: {
           created_at?: string
@@ -461,6 +466,11 @@ export type Database = {
           observacao?: string | null
           status?: string
           user_id: string
+          codigo?: string | null
+          confirmado_em?: string | null
+          confirmado_por?: string | null
+          confirmado_por_nome?: string | null
+          pagamento?: string
         }
         Update: {
           created_at?: string
@@ -471,6 +481,11 @@ export type Database = {
           observacao?: string | null
           status?: string
           user_id?: string
+          codigo?: string | null
+          confirmado_em?: string | null
+          confirmado_por?: string | null
+          confirmado_por_nome?: string | null
+          pagamento?: string
         }
         Relationships: [
           {

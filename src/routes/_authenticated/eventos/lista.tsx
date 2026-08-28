@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarPlus, Pencil, Trash2, Users } from "lucide-react";
+import { BadgeCheck, CalendarPlus, Pencil, Receipt, Trash2, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
 import { DataCampo, HORARIOS_DIA, SelectCampo } from "@/components/crm/campos";
+import { Comprovante, type DadosComprovante } from "@/components/crm/comprovante";
 import { AvatarIniciais, PageHeader } from "@/components/crm/pagina";
 import {
   EmptyRow,
@@ -43,10 +44,12 @@ import {
   CATEGORIAS_EVENTO,
   carregarEventos,
   LOCAIS_EVENTO,
+  PAGAMENTO,
   STATUS_EVENTO,
   taxaFormatada,
   vagasRestantes,
   type Evento,
+  type Inscricao,
   type StatusEvento,
 } from "@/lib/eventos";
 import { dataParaBR, hora, mensagemErro } from "@/lib/formato";
@@ -315,69 +318,238 @@ function EventoDialog({
   );
 }
 
-function InscritosDialog({ evento, onFechar }: { evento: Evento | null; onFechar: () => void }) {
+function InscritosDialog({
+  evento,
+  podeGerenciar,
+  onFechar,
+}: {
+  evento: Evento | null;
+  podeGerenciar: boolean;
+  onFechar: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [comprovante, setComprovante] = useState<DadosComprovante | null>(null);
+  const [recemConfirmado, setRecemConfirmado] = useState(false);
+  const [erro, setErro] = useState("");
+
   const consulta = useQuery({
     queryKey: ["evento-inscritos", evento?.id],
     enabled: evento !== null,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("evento_inscricoes")
-        .select("id, nome, email, status, created_at")
+        .select("*")
         .eq("evento_id", evento!.id)
         .order("created_at");
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as unknown as Inscricao[];
     },
   });
 
+  const confirmar = useMutation({
+    mutationFn: async ({
+      inscricao,
+      confirmando,
+    }: {
+      inscricao: Inscricao;
+      confirmando: boolean;
+    }) => {
+      const { data: sessao } = await supabase.auth.getSession();
+      const user = sessao.session?.user;
+      const registro = confirmando
+        ? {
+            pagamento: "confirmado",
+            confirmado_em: new Date().toISOString(),
+            confirmado_por: user?.id ?? null,
+            confirmado_por_nome:
+              (user?.user_metadata?.["nome"] as string | undefined) ?? user?.email ?? null,
+          }
+        : {
+            pagamento: evento?.taxa ? "pendente" : "isento",
+            confirmado_em: null,
+            confirmado_por: null,
+            confirmado_por_nome: null,
+          };
+
+      const { error } = await supabase
+        .from("evento_inscricoes")
+        .update(registro as never)
+        .eq("id", inscricao.id);
+      if (error) throw error;
+
+      await registrarAuditoria({
+        acao: confirmando ? "confirmou presença" : "reabriu inscrição",
+        entidade: "evento",
+        entidadeId: evento?.id ?? null,
+        detalhe: inscricao.nome + (evento ? " · " + evento.titulo : ""),
+      });
+      return { inscricao, confirmando };
+    },
+    onSuccess: async ({ inscricao, confirmando }) => {
+      setErro("");
+      await queryClient.invalidateQueries({ queryKey: ["evento-inscritos", evento?.id] });
+      await queryClient.invalidateQueries({ queryKey: ["eventos"] });
+      if (confirmando && evento) {
+        setRecemConfirmado(true);
+        setComprovante({
+          codigo: inscricao.codigo ?? "—",
+          participante: inscricao.nome,
+          email: inscricao.email,
+          evento: evento.titulo,
+          data: evento.data,
+          horaInicio: evento.hora_inicio,
+          local: evento.local,
+          taxa: evento.taxa,
+          confirmadoEm: new Date().toISOString(),
+          confirmadoPor: null,
+        });
+      }
+    },
+    onError: (e) => setErro(mensagemErro(e)),
+  });
+
   const lista = (consulta.data ?? []).filter((i) => i.status === "confirmada");
+  const confirmados = lista.filter((i) => i.pagamento === "confirmado").length;
+  const pendentes = lista.filter((i) => i.pagamento === "pendente").length;
 
   return (
-    <Dialog open={evento !== null} onOpenChange={(v) => (!v ? onFechar() : undefined)}>
-      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden border-jt-line bg-jt-panel text-jt-text sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-display">
-            <Users className="h-5 w-5 text-jt-gold" aria-hidden />
-            Inscritos
-          </DialogTitle>
-          <DialogDescription className="text-jt-muted">
-            {evento ? `${evento.titulo} · ${dataParaBR(evento.data)}` : ""}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={evento !== null} onOpenChange={(v) => (!v ? onFechar() : undefined)}>
+        <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden border-jt-line bg-jt-panel text-jt-text sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-display">
+              <Users className="h-5 w-5 text-jt-gold" aria-hidden />
+              Inscritos
+            </DialogTitle>
+            <DialogDescription className="text-jt-muted">
+              {evento ? evento.titulo + " · " + dataParaBR(evento.data) : ""}
+              {evento?.taxa
+                ? " · taxa de " + taxaFormatada(evento.taxa) + " paga por PIX"
+                : " · evento sem taxa"}
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overflow-x-hidden px-1">
-          {consulta.isLoading ? (
-            <p className="py-8 text-center text-sm text-jt-muted">Carregando…</p>
-          ) : lista.length === 0 ? (
-            <p className="py-8 text-center text-sm text-jt-muted">
-              Ninguém reservou vaga ainda neste evento.
-            </p>
-          ) : (
-            lista.map((i) => (
-              <div
-                key={i.id}
-                className="flex items-center gap-2.5 rounded-xl border border-jt-line px-3 py-2"
-              >
-                <AvatarIniciais texto={iniciais(i.nome)} tamanho="sm" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-jt-text">{i.nome}</p>
-                  <p className="truncate text-xs text-jt-muted">{i.email}</p>
-                </div>
-                <span className="num shrink-0 text-xs text-jt-muted">
-                  {dataParaBR(i.created_at.slice(0, 10))}
-                </span>
-              </div>
-            ))
-          )}
-        </div>
+          {lista.length > 0 ? (
+            <div className="flex flex-wrap gap-2 text-xs">
+              <Badge className="border-transparent bg-green-50 font-normal text-green-700 dark:bg-green-950/50 dark:text-green-300">
+                {confirmados} com presença confirmada
+              </Badge>
+              {pendentes > 0 ? (
+                <Badge className="border-transparent bg-amber-50 font-normal text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
+                  {pendentes} aguardando confirmação
+                </Badge>
+              ) : null}
+            </div>
+          ) : null}
 
-        <DialogFooter>
-          <PillButton variante="ghost" onClick={onFechar}>
-            Fechar
-          </PillButton>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overflow-x-hidden px-1">
+            {consulta.isLoading ? (
+              <p className="py-8 text-center text-sm text-jt-muted">Carregando…</p>
+            ) : lista.length === 0 ? (
+              <p className="py-8 text-center text-sm text-jt-muted">
+                Ninguém reservou vaga ainda neste evento.
+              </p>
+            ) : (
+              lista.map((i) => {
+                const estado = PAGAMENTO[i.pagamento] ?? PAGAMENTO.pendente;
+                const confirmado = i.pagamento === "confirmado";
+                return (
+                  <div key={i.id} className="rounded-xl border border-jt-line px-3 py-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <AvatarIniciais texto={iniciais(i.nome)} tamanho="sm" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-jt-text">{i.nome}</p>
+                        <p className="truncate text-xs text-jt-muted">{i.email}</p>
+                      </div>
+                      <Badge
+                        className={cn("shrink-0 border-transparent font-normal", estado.classe)}
+                      >
+                        {i.pagamento === "isento" && !confirmado ? "Inscrito" : estado.rotulo}
+                      </Badge>
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="num text-[11px] text-jt-muted">
+                        reservou em {dataParaBR(i.created_at.slice(0, 10))}
+                      </span>
+                      {podeGerenciar ? (
+                        confirmado ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setComprovante({
+                                  codigo: i.codigo ?? "—",
+                                  participante: i.nome,
+                                  email: i.email,
+                                  evento: evento?.titulo ?? "",
+                                  data: evento?.data ?? "",
+                                  horaInicio: evento?.hora_inicio ?? "",
+                                  local: evento?.local ?? "",
+                                  taxa: evento?.taxa ?? null,
+                                  confirmadoEm: i.confirmado_em,
+                                  confirmadoPor: i.confirmado_por_nome,
+                                })
+                              }
+                              className="inline-flex items-center gap-1 text-xs font-medium text-jt-blue underline-offset-2 hover:underline"
+                            >
+                              <Receipt className="h-3.5 w-3.5" aria-hidden /> comprovante
+                            </button>
+                            <button
+                              type="button"
+                              disabled={confirmar.isPending}
+                              onClick={() => confirmar.mutate({ inscricao: i, confirmando: false })}
+                              className="text-xs text-jt-muted underline-offset-2 transition hover:text-jt-coral hover:underline disabled:opacity-40"
+                            >
+                              desfazer
+                            </button>
+                          </>
+                        ) : (
+                          <PillButton
+                            className="ml-auto h-8 rounded-full px-3 text-xs"
+                            disabled={confirmar.isPending}
+                            onClick={() => confirmar.mutate({ inscricao: i, confirmando: true })}
+                          >
+                            <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+                            {evento?.taxa ? "Confirmar pagamento" : "Confirmar presença"}
+                          </PillButton>
+                        )
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {erro ? <p className="text-xs text-jt-coral">{erro}</p> : null}
+
+          <DialogFooter>
+            <PillButton variante="ghost" onClick={onFechar}>
+              Fechar
+            </PillButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={comprovante !== null}
+        onOpenChange={(v) => {
+          if (!v) {
+            setComprovante(null);
+            setRecemConfirmado(false);
+          }
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-none bg-transparent p-0 shadow-none sm:max-w-sm">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Comprovante de inscrição</DialogTitle>
+            <DialogDescription>Extrato da presença confirmada.</DialogDescription>
+          </DialogHeader>
+          {comprovante ? <Comprovante dados={comprovante} comemorar={recemConfirmado} /> : null}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -755,7 +927,11 @@ function EventosLista() {
         erro={erro}
       />
 
-      <InscritosDialog evento={inscritosDe} onFechar={() => setInscritosDe(null)} />
+      <InscritosDialog
+        evento={inscritosDe}
+        podeGerenciar={podeGerenciar}
+        onFechar={() => setInscritosDe(null)}
+      />
     </>
   );
 }

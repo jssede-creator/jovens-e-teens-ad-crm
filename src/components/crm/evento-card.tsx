@@ -1,4 +1,4 @@
-import { CalendarDays, Check, Clock, MapPin, Ticket, Users } from "lucide-react";
+import { CalendarDays, Check, Clock, Clock3, MapPin, Receipt, Ticket, Users } from "lucide-react";
 
 import { PillButton } from "@/components/cadastro/ui";
 import { Badge } from "@/components/ui/badge";
@@ -19,17 +19,20 @@ export function EventoCard({
   ocupado,
   onReservar,
   onCancelar,
+  onComprovante,
   className,
 }: {
   evento: Evento;
   ocupado?: boolean;
   onReservar?: (e: Evento) => void;
   onCancelar?: (e: Evento) => void;
+  onComprovante?: (e: Evento) => void;
   className?: string;
 }) {
   const restantes = vagasRestantes(evento);
   const podeReservar = aceitaInscricao(evento, hojeISO());
   const inscrito = evento.minhaInscricao !== null;
+  const pendente = evento.meuPagamento === "pendente";
   const status = STATUS_EVENTO[evento.status];
 
   return (
@@ -95,10 +98,34 @@ export function EventoCard({
       ) : null}
 
       {inscrito ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge className="gap-1.5 border-transparent bg-green-50 font-normal text-green-700 dark:bg-green-950/50 dark:text-green-300">
-            <Check className="h-3 w-3" aria-hidden /> Sua vaga está reservada
-          </Badge>
+        <div className="space-y-2">
+          {pendente ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 dark:border-amber-900/50 dark:bg-amber-950/20">
+              <p className="flex items-center gap-1.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+                <Clock3 className="h-3.5 w-3.5" aria-hidden /> Aguardando confirmação
+              </p>
+              <p className="mt-1 text-xs text-jt-muted">
+                Sua vaga está guardada. Faça o PIX de {taxaFormatada(evento.taxa)} e a liderança
+                confirma a presença por aqui.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className="gap-1.5 border-transparent bg-green-50 font-normal text-green-700 dark:bg-green-950/50 dark:text-green-300">
+                <Check className="h-3 w-3" aria-hidden /> Presença confirmada
+              </Badge>
+              {onComprovante && evento.meuCodigo ? (
+                <button
+                  type="button"
+                  onClick={() => onComprovante(evento)}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-jt-blue underline-offset-2 hover:underline"
+                >
+                  <Receipt className="h-3.5 w-3.5" aria-hidden /> ver comprovante
+                </button>
+              ) : null}
+            </div>
+          )}
+
           {onCancelar ? (
             <button
               type="button"
@@ -106,7 +133,7 @@ export function EventoCard({
               disabled={ocupado}
               className="text-xs text-jt-muted underline-offset-2 transition hover:text-jt-coral hover:underline disabled:opacity-40"
             >
-              cancelar
+              cancelar reserva
             </button>
           ) : null}
         </div>

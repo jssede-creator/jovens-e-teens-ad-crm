@@ -4,9 +4,17 @@ import { CalendarDays, CalendarPlus, Ticket, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { PillButton } from "@/components/cadastro/ui";
+import { Comprovante, type DadosComprovante } from "@/components/crm/comprovante";
 import { EventoCard } from "@/components/crm/evento-card";
 import { Bloco, PageHeader, StatCardTopo, VazioBloco } from "@/components/crm/pagina";
 import { Carregando, SemPermissao } from "@/components/sem-permissao";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAcesso } from "@/hooks/use-acesso";
 import { supabase } from "@/integrations/supabase/client";
 import { registrarAuditoria } from "@/lib/auditoria";
@@ -39,6 +47,7 @@ function EventosPainel() {
 
   const [conta, setConta] = useState<{ id: string; nome: string; email: string } | null>(null);
   const [erro, setErro] = useState("");
+  const [comprovante, setComprovante] = useState<DadosComprovante | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -63,11 +72,12 @@ function EventosPainel() {
   const proximos = eventos.filter((e) => e.data >= hoje && e.status !== "cancelado");
   const meus = eventos.filter((e) => e.minhaInscricao !== null && e.data >= hoje);
 
+  const aguardando = meus.filter((e) => e.meuPagamento === "pendente").length;
   const indicadores = {
     proximos: proximos.length,
     inscritos: proximos.reduce((soma, e) => soma + e.inscritos, 0),
     minhas: meus.length,
-    arrecadacao: proximos.reduce((soma, e) => soma + (e.taxa ?? 0) * e.inscritos, 0),
+    aguardando,
   };
 
   const reservar = useMutation({
@@ -93,6 +103,22 @@ function EventosPainel() {
     },
     onError: (e) => setErro(mensagemErro(e)),
   });
+
+  const abrirComprovante = (e: Evento) => {
+    if (!conta) return;
+    setComprovante({
+      codigo: e.meuCodigo ?? "—",
+      participante: conta.nome,
+      email: conta.email,
+      evento: e.titulo,
+      data: e.data,
+      horaInicio: e.hora_inicio,
+      local: e.local,
+      taxa: e.taxa,
+      confirmadoEm: e.minhaConfirmacao,
+      confirmadoPor: null,
+    });
+  };
 
   const cancelar = useMutation({
     mutationFn: async (evento: Evento) => {
@@ -172,9 +198,9 @@ function EventosPainel() {
         />
         <StatCardTopo
           icone={Ticket}
-          rotulo="Taxas previstas"
-          valor={taxaFormatada(indicadores.arrecadacao || null)}
-          rodape="soma das inscrições pagas"
+          rotulo="Aguardando confirmação"
+          valor={String(indicadores.aguardando)}
+          rodape="reservas suas com PIX pendente"
         />
       </div>
 
@@ -203,6 +229,7 @@ function EventosPainel() {
                   ocupado={reservar.isPending || cancelar.isPending}
                   onReservar={(alvo) => reservar.mutate(alvo)}
                   onCancelar={(alvo) => cancelar.mutate(alvo)}
+                  onComprovante={abrirComprovante}
                 />
               ))}
             </div>
@@ -225,20 +252,48 @@ function EventosPainel() {
                       {dataParaBR(e.data)} · {e.local} · {taxaFormatada(e.taxa)}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => cancelar.mutate(e)}
-                    disabled={cancelar.isPending}
-                    className="text-xs text-jt-muted underline-offset-2 transition hover:text-jt-coral hover:underline disabled:opacity-40"
-                  >
-                    cancelar reserva
-                  </button>
+                  <div className="flex shrink-0 items-center gap-3">
+                    {e.meuPagamento === "pendente" ? (
+                      <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
+                        aguardando confirmação
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => abrirComprovante(e)}
+                        className="text-xs font-medium text-jt-blue underline-offset-2 hover:underline"
+                      >
+                        ver comprovante
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => cancelar.mutate(e)}
+                      disabled={cancelar.isPending}
+                      className="text-xs text-jt-muted underline-offset-2 transition hover:text-jt-coral hover:underline disabled:opacity-40"
+                    >
+                      cancelar
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
           )}
         </Bloco>
       </div>
+
+      <Dialog
+        open={comprovante !== null}
+        onOpenChange={(v) => (!v ? setComprovante(null) : undefined)}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-none bg-transparent p-0 shadow-none sm:max-w-sm">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Comprovante de inscrição</DialogTitle>
+            <DialogDescription>Extrato da sua presença confirmada.</DialogDescription>
+          </DialogHeader>
+          {comprovante ? <Comprovante dados={comprovante} /> : null}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

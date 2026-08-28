@@ -22,6 +22,27 @@ export type Evento = {
   inscritos: number;
   /** Inscrição confirmada da própria conta, quando existe. */
   minhaInscricao: string | null;
+  /** Estado do pagamento da própria inscrição. */
+  meuPagamento: Pagamento | null;
+  meuCodigo: string | null;
+  minhaConfirmacao: string | null;
+};
+
+export type Pagamento = "isento" | "pendente" | "confirmado";
+
+export const PAGAMENTO: Record<Pagamento, { rotulo: string; classe: string }> = {
+  isento: {
+    rotulo: "Presença confirmada",
+    classe: "bg-green-50 text-green-700 dark:bg-green-950/50 dark:text-green-300",
+  },
+  pendente: {
+    rotulo: "Aguardando confirmação",
+    classe: "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
+  },
+  confirmado: {
+    rotulo: "Presença confirmada",
+    classe: "bg-green-50 text-green-700 dark:bg-green-950/50 dark:text-green-300",
+  },
 };
 
 export type Inscricao = {
@@ -32,6 +53,10 @@ export type Inscricao = {
   email: string;
   observacao: string | null;
   status: "confirmada" | "cancelada";
+  pagamento: Pagamento;
+  codigo: string | null;
+  confirmado_em: string | null;
+  confirmado_por_nome: string | null;
   created_at: string;
 };
 
@@ -73,6 +98,11 @@ export function aceitaInscricao(e: Evento, hoje: string): boolean {
   return restantes == null || restantes > 0;
 }
 
+/** Evento sem taxa não fica devendo nada; com taxa, nasce pendente de PIX. */
+export function pagamentoInicial(evento: Evento): Pagamento {
+  return evento.taxa == null || evento.taxa === 0 ? "isento" : "pendente";
+}
+
 export function taxaFormatada(taxa: number | null): string {
   if (taxa == null || taxa === 0) return "Gratuito";
   return taxa.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -85,7 +115,7 @@ export async function carregarEventos(userId: string | null) {
     supabase.from("congregacoes").select("id, nome"),
     supabase.rpc("eventos_inscritos"),
     userId
-      ? supabase.from("evento_inscricoes").select("id, evento_id, status").eq("user_id", userId)
+      ? supabase.from("evento_inscricoes").select("*").eq("user_id", userId)
       : Promise.resolve({ data: [], error: null }),
   ]);
   if (eventos.error) throw eventos.error;
@@ -99,9 +129,9 @@ export async function carregarEventos(userId: string | null) {
     ]),
   );
   const minhasPorEvento = new Map(
-    ((minhas.data ?? []) as { id: string; evento_id: string; status: string }[])
-      .filter((i) => i.status === "confirmada")
-      .map((i) => [i.evento_id, i.id]),
+    ((minhas.data ?? []) as Record<string, unknown>[])
+      .filter((i) => i["status"] === "confirmada")
+      .map((i) => [i["evento_id"] as string, i]),
   );
 
   return ((eventos.data ?? []) as Record<string, unknown>[]).map((e) => ({
@@ -111,6 +141,11 @@ export async function carregarEventos(userId: string | null) {
       ? (nomeCongregacao.get(e["congregacao_id"] as string) ?? "—")
       : "Todas as congregações",
     inscritos: inscritosPorEvento.get(e["id"] as string) ?? 0,
-    minhaInscricao: minhasPorEvento.get(e["id"] as string) ?? null,
+    minhaInscricao: (minhasPorEvento.get(e["id"] as string)?.["id"] as string) ?? null,
+    meuPagamento:
+      (minhasPorEvento.get(e["id"] as string)?.["pagamento"] as Pagamento | undefined) ?? null,
+    meuCodigo: (minhasPorEvento.get(e["id"] as string)?.["codigo"] as string | null) ?? null,
+    minhaConfirmacao:
+      (minhasPorEvento.get(e["id"] as string)?.["confirmado_em"] as string | null) ?? null,
   })) as Evento[];
 }
