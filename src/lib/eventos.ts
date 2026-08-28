@@ -60,7 +60,7 @@ export type Inscricao = {
   created_at: string;
 };
 
-export const LOCAIS_EVENTO = ["Templo", "Sala VIP", "Refeitório", "Piso Zero"] as const;
+export { LOCAIS as LOCAIS_EVENTO } from "@/lib/locais";
 
 export const CATEGORIAS_EVENTO = [
   "Culto",

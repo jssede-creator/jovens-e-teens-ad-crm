@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import ministerioFoto from "@/assets/inabalaveis.png";
 import {
-  DateInput,
   Eyebrow,
   Field,
   Panel,
@@ -25,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { DataCampo } from "@/components/crm/campos";
 import { supabase } from "@/integrations/supabase/client";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { convidarPessoa } from "@/lib/convite.functions";
@@ -113,6 +113,7 @@ type Formulario = {
   rg: string;
   endereco: string;
   numero: string;
+  bairro: string;
   complemento: string;
   cidade: string;
   cep: string;
@@ -136,6 +137,7 @@ const FORM_INICIAL: Formulario = {
   rg: "",
   endereco: "",
   numero: "",
+  bairro: "",
   complemento: "",
   cidade: "",
   cep: "",
@@ -220,6 +222,7 @@ function ComplementarCadastro() {
       "rg",
       "endereco",
       "numero",
+      "bairro",
       "cidade",
       "cep",
     ];
@@ -229,7 +232,7 @@ function ComplementarCadastro() {
     if (!novos["cep"] && semMascara(form.cep).length < 8) novos["cep"] = CEP_INCOMPLETO;
     setErros(novos);
     if (Object.keys(novos).length > 0) {
-      const camposEndereco = ["endereco", "numero", "cidade", "cep"];
+      const camposEndereco = ["endereco", "numero", "bairro", "cidade", "cep"];
       const temErroDados = Object.keys(novos).some((c) => !camposEndereco.includes(c));
       setAba(temErroDados ? "dados" : "endereco");
       return false;
@@ -278,6 +281,7 @@ function ComplementarCadastro() {
         endereco: form.endereco.trim(),
         numero: form.numero.trim() || null,
         complemento: form.complemento.trim() || null,
+        bairro: form.bairro.trim() || null,
         cidade: form.cidade.trim(),
         cep: form.cep,
         compartilhou_dados_complementares: compartilhou,
@@ -292,11 +296,22 @@ function ComplementarCadastro() {
         lgpd_aceito: true,
       };
 
-      const { data: criado, error } = await supabase
+      let { data: criado, error } = await supabase
         .from("cadastros")
         .insert(registro)
         .select("id")
         .single();
+
+      // A coluna bairro entra pela migração 20260830180000; enquanto o banco não
+      // a tiver, o cadastro segue sem ela em vez de falhar.
+      if (error?.code === "PGRST204") {
+        const { bairro: _bairro, ...semBairro } = registro;
+        ({ data: criado, error } = await supabase
+          .from("cadastros")
+          .insert(semBairro)
+          .select("id")
+          .single());
+      }
 
       if (error) {
         if (error.code === "23505" || /duplicate key/i.test(error.message)) {
@@ -312,7 +327,7 @@ function ComplementarCadastro() {
         ? familia
             .filter((p) => p.nome_completo.trim())
             .map((p) => ({
-              cadastro_id: criado.id,
+              cadastro_id: criado!.id,
               nome_completo: p.nome_completo.trim(),
               parentesco: p.parentesco.trim() || null,
               idade: p.idade ? Number(p.idade) : null,
@@ -324,7 +339,7 @@ function ComplementarCadastro() {
       await registrarAuditoria({
         acao: "criou",
         entidade: "cadastro",
-        entidadeId: criado.id,
+        entidadeId: criado?.id ?? null,
         detalhe: registro.nome_completo,
       });
 
@@ -572,10 +587,12 @@ function EtapaDados({
                 erro={erros["data_nascimento"]}
                 htmlFor="nascimento"
               >
-                <DateInput
-                  id="nascimento"
-                  value={form.data_nascimento}
+                <DataCampo
+                  valor={form.data_nascimento}
                   onValueChange={(v) => setCampo("data_nascimento", v)}
+                  placeholder="Escolha a data"
+                  anoInicial={1920}
+                  anoFinal={new Date().getFullYear()}
                 />
               </Field>
               <Field label="Telefone" obrigatorio erro={erros["telefone"]} htmlFor="telefone">
@@ -614,7 +631,7 @@ function EtapaDados({
                 id="endereco"
                 value={form.endereco}
                 onValueChange={(v) => setCampo("endereco", v)}
-                placeholder="Rua e bairro"
+                placeholder="Rua, avenida…"
               />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -632,6 +649,14 @@ function EtapaDados({
                   value={form.complemento}
                   onValueChange={(v) => setCampo("complemento", v)}
                   placeholder="Apto, bloco…"
+                />
+              </Field>
+              <Field label="Bairro" obrigatorio erro={erros["bairro"]} htmlFor="bairro">
+                <TextInput
+                  id="bairro"
+                  value={form.bairro}
+                  onValueChange={(v) => setCampo("bairro", v)}
+                  placeholder="Ex.: Vila Augusta"
                 />
               </Field>
               <Field label="Cidade" obrigatorio erro={erros["cidade"]} htmlFor="cidade">
@@ -1058,6 +1083,7 @@ function EtapaRevisao({
           {aba === "endereco"
             ? [
                 linha("Endereço", form.endereco),
+                linha("Bairro", form.bairro),
                 linha("Número", form.numero),
                 linha("Complemento", form.complemento),
                 linha("Cidade", form.cidade),

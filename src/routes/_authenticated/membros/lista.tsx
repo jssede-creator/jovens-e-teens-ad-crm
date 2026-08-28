@@ -92,6 +92,7 @@ type Membro = {
   endereco: string;
   numero: string;
   complemento: string;
+  bairro: string;
   pontoReferencia: string;
   cidade: string;
   cep: string;
@@ -255,6 +256,7 @@ const FORM_MEMBRO = {
   endereco: "",
   numero: "",
   complemento: "",
+  bairro: "",
   ponto_referencia: "",
   cidade: "",
   cep: "",
@@ -302,6 +304,7 @@ function MembroDialog({
             endereco: editando.endereco,
             numero: editando.numero,
             complemento: editando.complemento,
+            bairro: editando.bairro,
             ponto_referencia: editando.pontoReferencia,
             cidade: editando.cidade,
             cep: editando.cep,
@@ -325,6 +328,7 @@ function MembroDialog({
       "telefone",
       "email",
       "endereco",
+      "bairro",
       "cidade",
       "cep",
     ];
@@ -435,6 +439,13 @@ function MembroDialog({
                 value={form.ponto_referencia}
                 onValueChange={(v) => campo("ponto_referencia", v)}
                 placeholder="Ex.: em frente à praça"
+              />
+            </Field>
+            <Field label="Bairro" obrigatorio erro={erros["bairro"] ?? ""}>
+              <TextInput
+                value={form.bairro}
+                onValueChange={(v) => campo("bairro", v)}
+                placeholder="Ex.: Vila Augusta"
               />
             </Field>
             <Field label="Cidade" obrigatorio erro={erros["cidade"] ?? ""}>
@@ -705,6 +716,7 @@ function MembrosLista() {
         endereco: c.endereco,
         numero: c.numero ?? "",
         complemento: c.complemento ?? "",
+        bairro: (c as { bairro?: string | null }).bairro ?? "",
         pontoReferencia: (c as { ponto_referencia?: string | null }).ponto_referencia ?? "",
         cidade: c.cidade,
         cep: c.cep,
@@ -738,7 +750,12 @@ function MembrosLista() {
         lgpd_aceito: true,
       };
       const referencia = form.ponto_referencia.trim();
-      const comReferencia = { ...base, ...(referencia ? { ponto_referencia: referencia } : {}) };
+      const bairro = form.bairro.trim();
+      const comReferencia = {
+        ...base,
+        ...(referencia ? { ponto_referencia: referencia } : {}),
+        ...(bairro ? { bairro } : {}),
+      };
 
       if (editando) {
         let { error } = await supabase

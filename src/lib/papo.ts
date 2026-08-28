@@ -32,13 +32,7 @@ export function rotuloStatus(status: string) {
 }
 
 /** Salas onde a liderança costuma receber. */
-export const LOCAIS_PAPO = [
-  "Sala VIP",
-  "Sala de reuniões",
-  "Secretaria",
-  "Templo",
-  "Online",
-] as const;
+export { LOCAIS as LOCAIS_PAPO } from "@/lib/locais";
 
 export type Horario = {
   id: string;

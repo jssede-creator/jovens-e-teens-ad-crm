@@ -438,6 +438,7 @@ function MeusDados() {
                   rotulo="Ponto de referência"
                   valor={texto("ponto_referencia")}
                 />
+                <Campo icone={MapPin} rotulo="Bairro" valor={texto("bairro")} />
                 <Campo icone={MapPin} rotulo="Cidade" valor={texto("cidade")} />
                 <Campo icone={MapPin} rotulo="CEP" valor={texto("cep")} />
               </div>

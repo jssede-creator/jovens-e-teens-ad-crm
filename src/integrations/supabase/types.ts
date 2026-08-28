@@ -114,6 +114,7 @@ export type Database = {
       }
       cadastros: {
         Row: {
+          bairro: string | null
           cep: string
           cidade: string
           compartilhou_dados_complementares: boolean
@@ -143,6 +144,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          bairro?: string | null
           cep: string
           cidade: string
           compartilhou_dados_complementares?: boolean
@@ -172,6 +174,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          bairro?: string | null
           cep?: string
           cidade?: string
           compartilhou_dados_complementares?: boolean

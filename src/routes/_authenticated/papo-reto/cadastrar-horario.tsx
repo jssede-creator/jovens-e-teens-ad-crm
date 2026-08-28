@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarPlus, CalendarRange, CheckCircle2, Lock, Trash2 } from "lucide-react";
+import { CalendarPlus, CalendarRange, CheckCircle2, Lock, Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Field, PillButton } from "@/components/cadastro/ui";
@@ -9,6 +9,14 @@ import { Bloco, PageHeader, StatCardTopo, VazioBloco } from "@/components/crm/pa
 import { TableSearch } from "@/components/crm/tabela";
 import { Carregando, SemPermissao } from "@/components/sem-permissao";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAcesso } from "@/hooks/use-acesso";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -16,7 +24,7 @@ import { registrarAuditoria } from "@/lib/auditoria";
 import { hojeISO } from "@/lib/ebd";
 import { dataParaBR, hora, mensagemErro } from "@/lib/formato";
 import { podeVer } from "@/lib/nav";
-import { carregarPapoReto, horariosLivres, LOCAIS_PAPO } from "@/lib/papo";
+import { carregarPapoReto, horariosLivres, LOCAIS_PAPO, type Horario } from "@/lib/papo";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/papo-reto/cadastrar-horario")({
@@ -56,6 +64,8 @@ function CadastrarHorario() {
   const [aba, setAba] = useState<Aba>("proximos");
   const [busca, setBusca] = useState("");
   const [erro, setErro] = useState("");
+  const [aviso, setAviso] = useState("");
+  const [editando, setEditando] = useState<Horario | null>(null);
 
   const consulta = useQuery({
     queryKey: ["papo-reto"],
@@ -87,9 +97,18 @@ function CadastrarHorario() {
       }));
       // O cast cobre a coluna `local`, que os tipos gerados só conhecem depois
       // que a migração roda e o Lovable regenera o types.ts.
-      const { error } = await supabase
+      let { error } = await supabase
         .from("papo_reto_horarios")
         .insert(registros as unknown as NovoHorario[]);
+
+      // Sem a coluna local no banco, abre o horário sem sala e avisa.
+      if (error?.code === "PGRST204" && local) {
+        const semLocal = registros.map(({ local: _l, ...resto }) => resto);
+        ({ error } = await supabase
+          .from("papo_reto_horarios")
+          .insert(semLocal as unknown as NovoHorario[]));
+        if (!error) setAviso("Horário aberto sem a sala: o banco ainda não tem esse campo.");
+      }
       if (error) throw error;
       await registrarAuditoria({
         acao: "abriu",
@@ -109,6 +128,48 @@ function CadastrarHorario() {
           ? "Escolha o dia e ao menos um horário."
           : mensagemErro(e),
       ),
+  });
+
+  const salvarEdicao = useMutation({
+    mutationFn: async ({
+      horario,
+      dados,
+    }: {
+      horario: Horario;
+      dados: { data: string; hora_inicio: string; hora_fim: string; local: string };
+    }) => {
+      const registro = {
+        data: dados.data,
+        hora_inicio: dados.hora_inicio,
+        hora_fim: dados.hora_fim,
+        ...(temLocal ? { local: dados.local || null } : {}),
+      };
+      let { error } = await supabase
+        .from("papo_reto_horarios")
+        .update(registro as never)
+        .eq("id", horario.id);
+      if (error?.code === "PGRST204") {
+        const { local: _l, ...semLocal } = registro as Record<string, unknown>;
+        ({ error } = await supabase
+          .from("papo_reto_horarios")
+          .update(semLocal as never)
+          .eq("id", horario.id));
+      }
+      if (error) throw error;
+      await registrarAuditoria({
+        acao: "editou",
+        entidade: "papo_reto_horario",
+        entidadeId: horario.id,
+        detalhe: dados.data + " " + dados.hora_inicio + (dados.local ? " · " + dados.local : ""),
+      });
+    },
+    onSuccess: async () => {
+      setEditando(null);
+      setErro("");
+      await queryClient.invalidateQueries({ queryKey: ["papo-reto"] });
+      await queryClient.invalidateQueries({ queryKey: ["calendario"] });
+    },
+    onError: (e) => setErro(mensagemErro(e)),
   });
 
   const remover = useMutation({
@@ -199,6 +260,8 @@ function CadastrarHorario() {
         />
       </div>
 
+      {aviso ? <p className="mt-3 text-xs text-amber-600 dark:text-amber-400">{aviso}</p> : null}
+
       <div className="mt-4 grid gap-4 lg:grid-cols-[340px_1fr]">
         <Bloco titulo="Novo horário">
           <div className="space-y-4">
@@ -215,16 +278,21 @@ function CadastrarHorario() {
               />
             </Field>
 
-            {temLocal ? (
-              <Field label="Local">
-                <SelectCampo
-                  opcoes={LOCAIS_PAPO.map((l) => ({ valor: l, rotulo: l }))}
-                  valor={local}
-                  onValueChange={setLocal}
-                  placeholder="Selecione"
-                />
-              </Field>
-            ) : null}
+            <Field
+              label="Local"
+              dica={
+                temLocal
+                  ? ""
+                  : "A sala só é gravada depois da migração do papo reto rodar no banco."
+              }
+            >
+              <SelectCampo
+                opcoes={LOCAIS_PAPO.map((l) => ({ valor: l, rotulo: l }))}
+                valor={local}
+                onValueChange={setLocal}
+                placeholder="Selecione"
+              />
+            </Field>
 
             <div>
               <p className="mb-1.5 block text-sm font-medium text-jt-text">Horários</p>
@@ -340,6 +408,15 @@ function CadastrarHorario() {
                     >
                       {pedido ? "Reservado" : "Livre"}
                     </Badge>
+                    <button
+                      type="button"
+                      aria-label={`Editar horário de ${dataParaBR(h.data)} às ${hora(h.hora_inicio)}`}
+                      title="Editar dia, horário e sala"
+                      onClick={() => setEditando(h)}
+                      className="grid h-7 w-7 place-items-center rounded-full text-jt-muted transition hover:bg-jt-panel-2 hover:text-jt-text"
+                    >
+                      <Pencil className="h-3.5 w-3.5" aria-hidden />
+                    </button>
                     {!pedido ? (
                       <button
                         type="button"
@@ -357,6 +434,139 @@ function CadastrarHorario() {
           )}
         </Bloco>
       </div>
+      <EditarHorarioDialog
+        horario={editando}
+        reservado={
+          editando
+            ? agendamentos.some((a) => a.horario_id === editando.id && a.status !== "recusado")
+            : false
+        }
+        temLocal={temLocal}
+        salvando={salvarEdicao.isPending}
+        onFechar={() => setEditando(null)}
+        onSalvar={(dados) =>
+          editando ? salvarEdicao.mutate({ horario: editando, dados }) : undefined
+        }
+      />
     </>
+  );
+}
+
+/** Ajusta dia, horário e sala de uma janela já aberta. */
+function EditarHorarioDialog({
+  horario,
+  reservado,
+  temLocal,
+  salvando,
+  onFechar,
+  onSalvar,
+}: {
+  horario: Horario | null;
+  reservado: boolean;
+  temLocal: boolean;
+  salvando: boolean;
+  onFechar: () => void;
+  onSalvar: (dados: { data: string; hora_inicio: string; hora_fim: string; local: string }) => void;
+}) {
+  const [dados, setDados] = useState({ data: "", hora_inicio: "", hora_fim: "", local: "" });
+  const [chaveAtual, setChaveAtual] = useState<string | null>(null);
+  const [erro, setErro] = useState("");
+
+  const chave = horario?.id ?? null;
+  if (chave !== chaveAtual) {
+    setChaveAtual(chave);
+    setErro("");
+    setDados({
+      data: horario?.data ?? "",
+      hora_inicio: horario?.hora_inicio.slice(0, 5) ?? "",
+      hora_fim: horario?.hora_fim.slice(0, 5) ?? "",
+      local: horario?.local ?? "",
+    });
+  }
+
+  return (
+    <Dialog open={horario !== null} onOpenChange={(v) => (!v ? onFechar() : undefined)}>
+      <DialogContent className="border-jt-line bg-jt-panel text-jt-text sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 font-display">
+            <Pencil className="h-5 w-5 text-jt-gold" aria-hidden />
+            Editar horário
+          </DialogTitle>
+          <DialogDescription className="text-jt-muted">
+            {reservado
+              ? "Este horário já tem pedido. Só a sala pode mudar, para não bagunçar a agenda de quem reservou."
+              : "Ajuste dia, horário e sala desta janela."}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <Field label="Dia">
+            <DataCampo
+              valor={dados.data}
+              onValueChange={(v) => setDados((a) => ({ ...a, data: v }))}
+              placeholder="Escolha o dia"
+              {...(reservado ? {} : {})}
+            />
+          </Field>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Início">
+              <SelectCampo
+                opcoes={HORARIOS_DIA.map((h) => ({ valor: h, rotulo: h }))}
+                valor={dados.hora_inicio}
+                onValueChange={(v) => setDados((a) => ({ ...a, hora_inicio: v }))}
+                disabled={reservado}
+                placeholder="Selecione"
+              />
+            </Field>
+            <Field label="Fim">
+              <SelectCampo
+                opcoes={HORARIOS_DIA.map((h) => ({ valor: h, rotulo: h }))}
+                valor={dados.hora_fim}
+                onValueChange={(v) => setDados((a) => ({ ...a, hora_fim: v }))}
+                disabled={reservado}
+                placeholder="Selecione"
+              />
+            </Field>
+          </div>
+
+          <Field
+            label="Local"
+            dica={temLocal ? "" : "A sala só é gravada depois da migração do papo reto rodar."}
+          >
+            <SelectCampo
+              opcoes={LOCAIS_PAPO.map((l) => ({ valor: l, rotulo: l }))}
+              valor={dados.local}
+              onValueChange={(v) => setDados((a) => ({ ...a, local: v }))}
+              placeholder="Sem sala definida"
+            />
+          </Field>
+
+          {erro ? <p className="text-xs text-jt-coral">{erro}</p> : null}
+        </div>
+
+        <DialogFooter>
+          <PillButton variante="ghost" onClick={onFechar}>
+            Cancelar
+          </PillButton>
+          <PillButton
+            disabled={salvando}
+            onClick={() => {
+              if (!dados.data || !dados.hora_inicio || !dados.hora_fim) {
+                setErro("Preencha dia e os dois horários.");
+                return;
+              }
+              if (dados.hora_fim <= dados.hora_inicio) {
+                setErro("O horário final precisa ser depois do inicial.");
+                return;
+              }
+              onSalvar(dados);
+            }}
+          >
+            {salvando ? "Salvando…" : "Salvar horário"}
+          </PillButton>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
