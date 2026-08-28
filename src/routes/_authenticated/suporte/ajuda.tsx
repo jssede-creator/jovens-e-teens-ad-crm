@@ -90,11 +90,11 @@ function SuporteAjuda() {
           levando a data e a hora do que você tentou fazer.
         </p>
         <Link
-          to="/suporte/historico"
+          to="/suporte/auditoria"
           className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-jt-blue hover:underline"
         >
           <LifeBuoy className="h-4 w-4" aria-hidden />
-          Abrir o histórico do sistema
+          Abrir a auditoria do sistema
         </Link>
       </Bloco>
     </>

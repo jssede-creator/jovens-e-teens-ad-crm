@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
+import logoCrm from "@/assets/crm-jt.png";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -269,9 +271,12 @@ function Sidebar({
         className="flex h-14 items-center gap-2 border-b border-jt-line px-4"
         aria-label="Ir para o Menu inicial"
       >
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-jt-blue text-xs font-semibold text-white">
-          AD
-        </span>
+        <img
+          src={logoCrm}
+          alt=""
+          aria-hidden
+          className="h-8 w-8 shrink-0 rounded-lg object-cover"
+        />
         {!recolhida ? (
           <span className="flex flex-col leading-tight">
             <span className="font-display text-sm text-jt-text">AD CRM</span>

@@ -99,13 +99,7 @@ const opcoes = (lista: string[]) => lista.map((v) => ({ valor: v, rotulo: v }));
 /* ------------------------------------------------------------------ */
 
 type Etapa =
-  | "boas-vindas"
-  | "dados"
-  | "bifurcacao"
-  | "familia"
-  | "socioeconomico"
-  | "revisao"
-  | "sucesso";
+  "boas-vindas" | "dados" | "bifurcacao" | "familia" | "socioeconomico" | "revisao" | "sucesso";
 
 type Pessoa = { nome_completo: string; parentesco: string; idade: string; ocupacao: string };
 
@@ -901,11 +895,7 @@ function EtapaSocio({
             />
           </Field>
           <Field label="Curso" htmlFor="curso">
-            <TextInput
-              id="curso"
-              value={form.curso}
-              onValueChange={(v) => setCampo("curso", v)}
-            />
+            <TextInput id="curso" value={form.curso} onValueChange={(v) => setCampo("curso", v)} />
           </Field>
         </div>
 
@@ -1076,9 +1066,7 @@ function EtapaRevisao({
             : null}
           {aba === "familia" ? (
             pessoas.length === 0 ? (
-              <p className="py-10 text-center text-sm text-jt-muted">
-                Nenhuma pessoa adicionada.
-              </p>
+              <p className="py-10 text-center text-sm text-jt-muted">Nenhuma pessoa adicionada.</p>
             ) : (
               pessoas.map((p, i) => (
                 <div key={i} className="border-b border-jt-line py-2 last:border-0">

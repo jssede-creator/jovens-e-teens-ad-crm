@@ -80,14 +80,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "AD CRM — Jovens e Teens AD" },
       {
         name: "description",
-        content:
-          "Sistema interno do ministério de jovens e adolescentes Jovens e Teens AD.",
+        content: "Sistema interno do ministério de jovens e adolescentes Jovens e Teens AD.",
       },
       { property: "og:title", content: "AD CRM — Jovens e Teens AD" },
       {
         property: "og:description",
-        content:
-          "Sistema interno do ministério de jovens e adolescentes Jovens e Teens AD.",
+        content: "Sistema interno do ministério de jovens e adolescentes Jovens e Teens AD.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

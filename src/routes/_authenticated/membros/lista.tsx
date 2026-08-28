@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Church, Download, Plus, Upload } from "lucide-react";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 
 import { PillButton } from "@/components/cadastro/ui";
 import { AvatarIniciais, PageHeader } from "@/components/crm/pagina";
@@ -98,6 +98,9 @@ type OrdemKey = "nome" | "congregacao" | "nascimento" | "cidade" | "cadastro";
 const CABECALHO_CSV =
   "nome_completo;data_nascimento;cpf;rg;telefone;email;congregacao;endereco;numero;cidade;cep";
 
+const EXEMPLO_CSV =
+  "Maria de Souza;12/03/2005;123.456.789-00;12.345.678-9;(15) 99999-0000;maria@email.com;AD Sede;Rua A;10;Sorocaba;18043-090";
+
 function alternarNoSet<T>(conjunto: Set<T>, valor: T, marcado: boolean) {
   const proximo = new Set(conjunto);
   if (marcado) proximo.add(valor);
@@ -186,48 +189,130 @@ function ImportarDialog({
   importando: boolean;
   resultado: string;
 }) {
+  const arquivoCsv = useRef<HTMLInputElement>(null);
   const [texto, setTexto] = useState("");
   const [lgpd, setLgpd] = useState(false);
 
+  const linhas = texto
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l && !l.toLowerCase().startsWith("nome_completo"));
+
+  const baixarModelo = () => {
+    const exemplo = `${CABECALHO_CSV}\n${EXEMPLO_CSV}`;
+    const url = URL.createObjectURL(
+      new Blob([`\uFEFF${exemplo}`], { type: "text/csv;charset=utf-8" }),
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "modelo-membros.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-jt-line bg-jt-panel text-jt-text sm:max-w-2xl">
+      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden border-jt-line bg-jt-panel text-jt-text sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-display">
             <Upload className="h-5 w-5 text-jt-gold" aria-hidden />
             Incluir membros em lote
           </DialogTitle>
           <DialogDescription className="text-jt-muted">
-            Cole as linhas separadas por ponto e vírgula, uma pessoa por linha, na ordem do
-            cabeçalho abaixo. A congregação é pelo nome exato.
+            Uma pessoa por linha, com os campos separados por ponto e vírgula.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
-          <p className="num overflow-x-auto rounded-lg border border-jt-line bg-jt-panel-2 p-3 text-xs text-jt-muted">
-            {CABECALHO_CSV}
-          </p>
-          <p className="text-xs text-jt-muted">
-            Congregações disponíveis: {congregacoes.map((c) => c.nome).join(", ") || "nenhuma"}
-          </p>
-          <textarea
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            rows={8}
-            placeholder="Maria de Souza;12/03/2005;123.456.789-00;12.345.678-9;(15) 99999-0000;maria@email.com;AD Sede;Rua A;10;Sorocaba;18043-090"
-            className="w-full rounded-[12px] border border-jt-line bg-jt-panel-2 p-3 text-sm text-jt-text placeholder:text-jt-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jt-gold"
-          />
-          <label className="flex items-start gap-2 text-xs text-jt-muted">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+          <div className="rounded-xl border border-jt-line bg-jt-panel-2 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-medium text-jt-text">Ordem dos campos</p>
+              <button
+                type="button"
+                onClick={baixarModelo}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-jt-blue hover:underline"
+              >
+                <Download className="h-3.5 w-3.5" aria-hidden /> Baixar modelo
+              </button>
+            </div>
+            <ol className="mt-2 flex flex-wrap gap-1.5">
+              {CABECALHO_CSV.split(";").map((campo, i) => (
+                <li
+                  key={campo}
+                  className="rounded-full border border-jt-line bg-jt-panel px-2 py-0.5 text-[11px] text-jt-muted"
+                >
+                  <span className="num mr-1 text-jt-text">{i + 1}</span>
+                  {campo}
+                </li>
+              ))}
+            </ol>
+            <p className="mt-2 text-[11px] text-jt-muted">
+              Congregação pelo nome exato: {congregacoes.map((c) => c.nome).join(", ") || "nenhuma"}
+              .
+            </p>
+          </div>
+
+          <div>
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-medium text-jt-text">Linhas</span>
+              <button
+                type="button"
+                onClick={() => arquivoCsv.current?.click()}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-jt-blue hover:underline"
+              >
+                <Upload className="h-3.5 w-3.5" aria-hidden /> Escolher arquivo .csv
+              </button>
+              <input
+                ref={arquivoCsv}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setTexto(await file.text());
+                  e.target.value = "";
+                }}
+              />
+            </div>
+            <textarea
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              rows={7}
+              spellCheck={false}
+              placeholder={EXEMPLO_CSV}
+              className="num w-full resize-none whitespace-pre rounded-xl border border-jt-line bg-jt-panel-2 p-3 text-xs leading-relaxed text-jt-text placeholder:text-jt-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jt-gold"
+            />
+            <p className="mt-1.5 text-xs text-jt-muted">
+              {linhas.length === 0
+                ? "Nenhuma linha ainda."
+                : `${linhas.length} pessoa(s) prontas para importar.`}
+            </p>
+          </div>
+
+          <label
+            className={cn(
+              "flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-xs transition",
+              lgpd ? "border-jt-success/50 bg-green-50/50 dark:bg-green-950/20" : "border-jt-line",
+            )}
+          >
             <input
               type="checkbox"
               checked={lgpd}
               onChange={(e) => setLgpd(e.target.checked)}
               className="mt-0.5"
             />
-            Confirmo que o aceite da LGPD foi coletado dessas pessoas fora do sistema. O cadastro
-            fica gravado como aceito.
+            <span className="text-jt-muted">
+              <span className="block font-medium text-jt-text">Aceite da LGPD</span>
+              Confirmo que essas pessoas autorizaram o uso dos dados fora do sistema. O cadastro
+              fica gravado como aceito.
+            </span>
           </label>
-          {resultado ? <p className="text-xs text-jt-text">{resultado}</p> : null}
+
+          {resultado ? (
+            <p className="rounded-xl border border-jt-line bg-jt-panel-2 p-3 text-xs text-jt-text">
+              {resultado}
+            </p>
+          ) : null}
         </div>
 
         <DialogFooter>
@@ -236,9 +321,11 @@ function ImportarDialog({
           </PillButton>
           <PillButton
             onClick={() => onImportar(texto, lgpd)}
-            disabled={importando || !texto.trim() || !lgpd}
+            disabled={importando || linhas.length === 0 || !lgpd}
           >
-            Importar
+            {importando
+              ? "Importando…"
+              : `Importar ${linhas.length > 0 ? `${linhas.length} membro(s)` : ""}`.trim()}
           </PillButton>
         </DialogFooter>
       </DialogContent>

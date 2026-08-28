@@ -178,8 +178,8 @@ function AuthPage() {
             Cuidar de cada jovem começa por conhecer cada história.
           </p>
           <p className="mt-4 text-sm text-white/80">
-            Cadastros, congregações e a Escola Bíblica Dominical reunidos num só lugar, com
-            carinho e organização.
+            Cadastros, congregações e a Escola Bíblica Dominical reunidos num só lugar, com carinho
+            e organização.
           </p>
         </div>
       </div>

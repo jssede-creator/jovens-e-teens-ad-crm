@@ -38,7 +38,8 @@ export type ModuleKey =
   | "suporte"
   | "configuracoes";
 
-export type Permissao = { tipo: "todos" } | { tipo: "modulo"; modulo: ModuleKey };
+export type Permissao =
+  { tipo: "todos" } | { tipo: "admin" } | { tipo: "modulo"; modulo: ModuleKey };
 
 export type NavItem = {
   rota: string;
@@ -55,6 +56,7 @@ export type NavGrupo = {
 };
 
 export const TODOS: Permissao = { tipo: "todos" };
+export const SO_ADMIN: Permissao = { tipo: "admin" };
 const modulo = (m: ModuleKey): Permissao => ({ tipo: "modulo", modulo: m });
 
 export const HOME_ROTA = "/inicio";
@@ -237,6 +239,13 @@ export const navegacao: NavGrupo[] = [
             icone: UserRound,
             permissao: TODOS,
           },
+          {
+            rota: "/perfil/painel-adm",
+            rotulo: "Painel administrativo",
+            descricao: "Todas as telas do CRM em um lugar só.",
+            icone: LayoutGrid,
+            permissao: SO_ADMIN,
+          },
         ],
       },
       {
@@ -247,9 +256,9 @@ export const navegacao: NavGrupo[] = [
         permissao: modulo("suporte"),
         filhos: [
           {
-            rota: "/suporte/historico",
-            rotulo: "Histórico",
-            descricao: "Trilha de auditoria do sistema.",
+            rota: "/suporte/auditoria",
+            rotulo: "Auditoria",
+            descricao: "Ações que alteram dado no CRM: quem fez, o quê e quando.",
             icone: LifeBuoy,
             permissao: modulo("suporte"),
           },
@@ -294,6 +303,7 @@ export type Acesso = { isAdmin: boolean; modules: ModuleKey[] };
 export function podeVer(permissao: Permissao, acesso: Acesso | null | undefined): boolean {
   if (permissao.tipo === "todos") return true;
   if (!acesso) return false;
+  if (permissao.tipo === "admin") return acesso.isAdmin;
   return acesso.isAdmin || acesso.modules.includes(permissao.modulo);
 }
 

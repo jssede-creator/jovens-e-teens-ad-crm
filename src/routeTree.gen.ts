@@ -36,9 +36,10 @@ import { Route as AuthenticatedPapoRetoCadastrarHorarioRouteImport } from './rou
 import { Route as AuthenticatedPapoRetoMeusAgendamentosRouteImport } from './routes/_authenticated/papo-reto/meus-agendamentos'
 import { Route as AuthenticatedPerfilIndexRouteImport } from './routes/_authenticated/perfil/index'
 import { Route as AuthenticatedPerfilAcessosRouteImport } from './routes/_authenticated/perfil/acessos'
+import { Route as AuthenticatedPerfilPainelAdmRouteImport } from './routes/_authenticated/perfil/painel-adm'
 import { Route as AuthenticatedSuporteIndexRouteImport } from './routes/_authenticated/suporte/index'
 import { Route as AuthenticatedSuporteAjudaRouteImport } from './routes/_authenticated/suporte/ajuda'
-import { Route as AuthenticatedSuporteHistoricoRouteImport } from './routes/_authenticated/suporte/historico'
+import { Route as AuthenticatedSuporteAuditoriaRouteImport } from './routes/_authenticated/suporte/auditoria'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -192,6 +193,12 @@ const AuthenticatedPerfilAcessosRoute =
     path: '/perfil/acessos',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPerfilPainelAdmRoute =
+  AuthenticatedPerfilPainelAdmRouteImport.update({
+    id: '/perfil/painel-adm',
+    path: '/perfil/painel-adm',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSuporteIndexRoute =
   AuthenticatedSuporteIndexRouteImport.update({
     id: '/suporte/',
@@ -204,10 +211,10 @@ const AuthenticatedSuporteAjudaRoute =
     path: '/suporte/ajuda',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedSuporteHistoricoRoute =
-  AuthenticatedSuporteHistoricoRouteImport.update({
-    id: '/suporte/historico',
-    path: '/suporte/historico',
+const AuthenticatedSuporteAuditoriaRoute =
+  AuthenticatedSuporteAuditoriaRouteImport.update({
+    id: '/suporte/auditoria',
+    path: '/suporte/auditoria',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -232,8 +239,9 @@ export interface FileRoutesByFullPath {
   '/papo-reto/cadastrar-horario': typeof AuthenticatedPapoRetoCadastrarHorarioRoute
   '/papo-reto/meus-agendamentos': typeof AuthenticatedPapoRetoMeusAgendamentosRoute
   '/perfil/acessos': typeof AuthenticatedPerfilAcessosRoute
+  '/perfil/painel-adm': typeof AuthenticatedPerfilPainelAdmRoute
   '/suporte/ajuda': typeof AuthenticatedSuporteAjudaRoute
-  '/suporte/historico': typeof AuthenticatedSuporteHistoricoRoute
+  '/suporte/auditoria': typeof AuthenticatedSuporteAuditoriaRoute
   '/configuracoes/': typeof AuthenticatedConfiguracoesIndexRoute
   '/congregacoes/': typeof AuthenticatedCongregacoesIndexRoute
   '/ebd/': typeof AuthenticatedEbdIndexRoute
@@ -263,8 +271,9 @@ export interface FileRoutesByTo {
   '/papo-reto/cadastrar-horario': typeof AuthenticatedPapoRetoCadastrarHorarioRoute
   '/papo-reto/meus-agendamentos': typeof AuthenticatedPapoRetoMeusAgendamentosRoute
   '/perfil/acessos': typeof AuthenticatedPerfilAcessosRoute
+  '/perfil/painel-adm': typeof AuthenticatedPerfilPainelAdmRoute
   '/suporte/ajuda': typeof AuthenticatedSuporteAjudaRoute
-  '/suporte/historico': typeof AuthenticatedSuporteHistoricoRoute
+  '/suporte/auditoria': typeof AuthenticatedSuporteAuditoriaRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesIndexRoute
   '/congregacoes': typeof AuthenticatedCongregacoesIndexRoute
   '/ebd': typeof AuthenticatedEbdIndexRoute
@@ -296,8 +305,9 @@ export interface FileRoutesById {
   '/_authenticated/papo-reto/cadastrar-horario': typeof AuthenticatedPapoRetoCadastrarHorarioRoute
   '/_authenticated/papo-reto/meus-agendamentos': typeof AuthenticatedPapoRetoMeusAgendamentosRoute
   '/_authenticated/perfil/acessos': typeof AuthenticatedPerfilAcessosRoute
+  '/_authenticated/perfil/painel-adm': typeof AuthenticatedPerfilPainelAdmRoute
   '/_authenticated/suporte/ajuda': typeof AuthenticatedSuporteAjudaRoute
-  '/_authenticated/suporte/historico': typeof AuthenticatedSuporteHistoricoRoute
+  '/_authenticated/suporte/auditoria': typeof AuthenticatedSuporteAuditoriaRoute
   '/_authenticated/configuracoes/': typeof AuthenticatedConfiguracoesIndexRoute
   '/_authenticated/congregacoes/': typeof AuthenticatedCongregacoesIndexRoute
   '/_authenticated/ebd/': typeof AuthenticatedEbdIndexRoute
@@ -329,8 +339,9 @@ export interface FileRouteTypes {
     | '/papo-reto/cadastrar-horario'
     | '/papo-reto/meus-agendamentos'
     | '/perfil/acessos'
+    | '/perfil/painel-adm'
     | '/suporte/ajuda'
-    | '/suporte/historico'
+    | '/suporte/auditoria'
     | '/configuracoes/'
     | '/congregacoes/'
     | '/ebd/'
@@ -360,8 +371,9 @@ export interface FileRouteTypes {
     | '/papo-reto/cadastrar-horario'
     | '/papo-reto/meus-agendamentos'
     | '/perfil/acessos'
+    | '/perfil/painel-adm'
     | '/suporte/ajuda'
-    | '/suporte/historico'
+    | '/suporte/auditoria'
     | '/configuracoes'
     | '/congregacoes'
     | '/ebd'
@@ -392,8 +404,9 @@ export interface FileRouteTypes {
     | '/_authenticated/papo-reto/cadastrar-horario'
     | '/_authenticated/papo-reto/meus-agendamentos'
     | '/_authenticated/perfil/acessos'
+    | '/_authenticated/perfil/painel-adm'
     | '/_authenticated/suporte/ajuda'
-    | '/_authenticated/suporte/historico'
+    | '/_authenticated/suporte/auditoria'
     | '/_authenticated/configuracoes/'
     | '/_authenticated/congregacoes/'
     | '/_authenticated/ebd/'
@@ -599,6 +612,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPerfilAcessosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/perfil/painel-adm': {
+      id: '/_authenticated/perfil/painel-adm'
+      path: '/perfil/painel-adm'
+      fullPath: '/perfil/painel-adm'
+      preLoaderRoute: typeof AuthenticatedPerfilPainelAdmRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/suporte/': {
       id: '/_authenticated/suporte/'
       path: '/suporte'
@@ -613,11 +633,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSuporteAjudaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/suporte/historico': {
-      id: '/_authenticated/suporte/historico'
-      path: '/suporte/historico'
-      fullPath: '/suporte/historico'
-      preLoaderRoute: typeof AuthenticatedSuporteHistoricoRouteImport
+    '/_authenticated/suporte/auditoria': {
+      id: '/_authenticated/suporte/auditoria'
+      path: '/suporte/auditoria'
+      fullPath: '/suporte/auditoria'
+      preLoaderRoute: typeof AuthenticatedSuporteAuditoriaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
@@ -643,8 +663,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPapoRetoCadastrarHorarioRoute: typeof AuthenticatedPapoRetoCadastrarHorarioRoute
   AuthenticatedPapoRetoMeusAgendamentosRoute: typeof AuthenticatedPapoRetoMeusAgendamentosRoute
   AuthenticatedPerfilAcessosRoute: typeof AuthenticatedPerfilAcessosRoute
+  AuthenticatedPerfilPainelAdmRoute: typeof AuthenticatedPerfilPainelAdmRoute
   AuthenticatedSuporteAjudaRoute: typeof AuthenticatedSuporteAjudaRoute
-  AuthenticatedSuporteHistoricoRoute: typeof AuthenticatedSuporteHistoricoRoute
+  AuthenticatedSuporteAuditoriaRoute: typeof AuthenticatedSuporteAuditoriaRoute
   AuthenticatedConfiguracoesIndexRoute: typeof AuthenticatedConfiguracoesIndexRoute
   AuthenticatedCongregacoesIndexRoute: typeof AuthenticatedCongregacoesIndexRoute
   AuthenticatedEbdIndexRoute: typeof AuthenticatedEbdIndexRoute
@@ -678,8 +699,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPapoRetoMeusAgendamentosRoute:
     AuthenticatedPapoRetoMeusAgendamentosRoute,
   AuthenticatedPerfilAcessosRoute: AuthenticatedPerfilAcessosRoute,
+  AuthenticatedPerfilPainelAdmRoute: AuthenticatedPerfilPainelAdmRoute,
   AuthenticatedSuporteAjudaRoute: AuthenticatedSuporteAjudaRoute,
-  AuthenticatedSuporteHistoricoRoute: AuthenticatedSuporteHistoricoRoute,
+  AuthenticatedSuporteAuditoriaRoute: AuthenticatedSuporteAuditoriaRoute,
   AuthenticatedConfiguracoesIndexRoute: AuthenticatedConfiguracoesIndexRoute,
   AuthenticatedCongregacoesIndexRoute: AuthenticatedCongregacoesIndexRoute,
   AuthenticatedEbdIndexRoute: AuthenticatedEbdIndexRoute,
