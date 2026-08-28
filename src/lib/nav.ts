@@ -352,5 +352,25 @@ export function migalhas(pathname: string): Migalha[] {
       }
     }
   }
+
+  // Página de detalhe (ex.: /ebd/classes/<id>): mostra a área e a subpágina de
+  // onde ela nasce, com "Detalhe" na ponta.
+  for (const grupo of navegacao) {
+    for (const item of grupo.itens) {
+      const filho = item.filhos?.find((f) => pathname.startsWith(f.rota + "/"));
+      if (filho) {
+        return [
+          raiz,
+          { rotulo: item.rotulo, rota: item.rota },
+          { rotulo: filho.rotulo, rota: filho.rota },
+          { rotulo: "Detalhe" },
+        ];
+      }
+      if (item.rota !== "/" && pathname.startsWith(item.rota + "/")) {
+        return [raiz, { rotulo: item.rotulo, rota: item.rota }, { rotulo: "Detalhe" }];
+      }
+    }
+  }
+
   return [raiz];
 }

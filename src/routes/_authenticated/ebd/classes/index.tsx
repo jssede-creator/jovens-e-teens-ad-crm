@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Church, GraduationCap, Pencil, Plus } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 
 import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
 import { SelectCampo } from "@/components/crm/campos";
-import { AvatarIniciais, PageHeader } from "@/components/crm/pagina";
+import { PageHeader } from "@/components/crm/pagina";
 import {
   ColumnsMenu,
   EmptyRow,
@@ -41,11 +41,11 @@ import {
 import { useAcesso } from "@/hooks/use-acesso";
 import { supabase } from "@/integrations/supabase/client";
 import { registrarAuditoria } from "@/lib/auditoria";
-import { idadeEm, iniciais } from "@/lib/ebd";
+
 import { mensagemErro } from "@/lib/formato";
 import { podeVer } from "@/lib/nav";
 
-export const Route = createFileRoute("/_authenticated/ebd/classes")({
+export const Route = createFileRoute("/_authenticated/ebd/classes/")({
   head: () => ({
     meta: [
       { title: "Classes da EBD — AD CRM | Jovens e Teens AD" },
@@ -209,78 +209,6 @@ function TurmaDialog({
   );
 }
 
-function VerTurmaDialog({ turma, onFechar }: { turma: Turma | null; onFechar: () => void }) {
-  const consulta = useQuery({
-    queryKey: ["ebd-turma-matriculados", turma?.id],
-    enabled: turma !== null,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ebd_matriculas")
-        .select("id, cadastro_id, cadastros(nome_completo, data_nascimento, telefone)")
-        .eq("turma_id", turma!.id);
-      if (error) throw error;
-      return (data ?? []).map((m) => {
-        const pessoa = m.cadastros as unknown as {
-          nome_completo: string;
-          data_nascimento: string;
-          telefone: string;
-        } | null;
-        return {
-          id: m.id,
-          nome: pessoa?.nome_completo ?? "—",
-          idade: idadeEm(pessoa?.data_nascimento),
-          telefone: pessoa?.telefone ?? "",
-        };
-      });
-    },
-  });
-
-  return (
-    <Dialog open={turma !== null} onOpenChange={(v) => (!v ? onFechar() : undefined)}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-jt-line bg-jt-panel text-jt-text sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-display">
-            <GraduationCap className="h-5 w-5 text-jt-gold" aria-hidden />
-            {turma?.nome ?? ""}
-          </DialogTitle>
-          <DialogDescription className="text-jt-muted">
-            {turma ? `${turma.congregacao} · ${turma.idadeMin} a ${turma.idadeMax} anos` : ""}
-          </DialogDescription>
-        </DialogHeader>
-
-        {consulta.isLoading ? (
-          <p className="py-8 text-center text-sm text-jt-muted">Carregando…</p>
-        ) : (consulta.data?.length ?? 0) === 0 ? (
-          <p className="py-8 text-center text-sm text-jt-muted">
-            Nenhum aluno matriculado nesta classe ainda.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {consulta.data?.map((m) => (
-              <li key={m.id} className="flex items-center gap-2.5 rounded-lg px-1 py-1.5">
-                <AvatarIniciais texto={iniciais(m.nome)} tamanho="sm" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-jt-text">{m.nome}</p>
-                  <p className="truncate text-xs text-jt-muted">
-                    {m.idade != null ? `${m.idade} anos` : "—"}
-                    {m.telefone ? ` · ${m.telefone}` : ""}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <DialogFooter>
-          <PillButton variante="ghost" onClick={onFechar}>
-            Fechar
-          </PillButton>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 function EbdClasses() {
   const queryClient = useQueryClient();
   const { data: acesso, isLoading: carregandoAcesso } = useAcesso();
@@ -300,7 +228,6 @@ function EbdClasses() {
   const [tamanhoPagina, setTamanhoPagina] = useState(10);
   const [novaTurma, setNovaTurma] = useState(false);
   const [editando, setEditando] = useState<Turma | null>(null);
-  const [verTurma, setVerTurma] = useState<Turma | null>(null);
   const [erroFormulario, setErroFormulario] = useState("");
 
   const consulta = useQuery({
@@ -454,13 +381,11 @@ function EbdClasses() {
       ) : null}
       <TableCell>
         <div className="flex items-center gap-1">
-          <PillButton
-            variante="outline"
-            onClick={() => setVerTurma(t)}
-            className="h-8 rounded-full px-3 text-xs"
-          >
-            Ver matriculados
-          </PillButton>
+          <Link to="/ebd/classes/$turmaId" params={{ turmaId: t.id }}>
+            <PillButton variante="outline" className="h-8 rounded-full px-3 text-xs">
+              Abrir classe
+            </PillButton>
+          </Link>
           {podeGerenciar ? (
             <button
               type="button"
@@ -662,8 +587,6 @@ function EbdClasses() {
         salvando={salvar.isPending}
         erro={erroFormulario}
       />
-
-      <VerTurmaDialog turma={verTurma} onFechar={() => setVerTurma(null)} />
     </>
   );
 }
