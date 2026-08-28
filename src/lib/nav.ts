@@ -337,6 +337,13 @@ export const navegacao: NavGrupo[] = [
             permissao: modulo("configuracoes"),
           },
           {
+            rota: "/configuracoes/papeis",
+            rotulo: "Papéis e permissões",
+            descricao: "Papéis do ministério, permissões por módulo e quem carrega cada um.",
+            icone: Settings,
+            permissao: modulo("configuracoes"),
+          },
+          {
             rota: "/configuracoes/sistema",
             rotulo: "Sistema",
             descricao: "Informações do ambiente e dos módulos.",

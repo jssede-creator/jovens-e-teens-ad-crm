@@ -199,7 +199,7 @@ function ConfiguracoesUsuarios() {
     <>
       <PageHeader
         titulo="Usuários — Configurações"
-        descricao="Quem tem conta no CRM e o que cada um enxerga."
+        descricao="Quem tem conta no CRM e o que cada um enxerga. Para trabalhar por papel, use Papéis e permissões."
         contagem={
           <Badge variant="outline" className="num border-jt-line font-medium text-jt-muted">
             {usuarios.length}

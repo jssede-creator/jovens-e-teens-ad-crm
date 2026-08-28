@@ -16,6 +16,7 @@ import { Route as AuthenticatedArquivosRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
 import { Route as AuthenticatedConfiguracoesIndexRouteImport } from './routes/_authenticated/configuracoes/index'
+import { Route as AuthenticatedConfiguracoesPapeisRouteImport } from './routes/_authenticated/configuracoes/papeis'
 import { Route as AuthenticatedConfiguracoesSistemaRouteImport } from './routes/_authenticated/configuracoes/sistema'
 import { Route as AuthenticatedConfiguracoesUsuariosRouteImport } from './routes/_authenticated/configuracoes/usuarios'
 import { Route as AuthenticatedCongregacoesIndexRouteImport } from './routes/_authenticated/congregacoes/index'
@@ -80,6 +81,12 @@ const AuthenticatedConfiguracoesIndexRoute =
   AuthenticatedConfiguracoesIndexRouteImport.update({
     id: '/configuracoes/',
     path: '/configuracoes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracoesPapeisRoute =
+  AuthenticatedConfiguracoesPapeisRouteImport.update({
+    id: '/configuracoes/papeis',
+    path: '/configuracoes/papeis',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedConfiguracoesSistemaRoute =
@@ -267,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/arquivos': typeof AuthenticatedArquivosRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/inicio': typeof AuthenticatedInicioRoute
+  '/configuracoes/papeis': typeof AuthenticatedConfiguracoesPapeisRoute
   '/configuracoes/sistema': typeof AuthenticatedConfiguracoesSistemaRoute
   '/configuracoes/usuarios': typeof AuthenticatedConfiguracoesUsuariosRoute
   '/congregacoes/lista': typeof AuthenticatedCongregacoesListaRoute
@@ -305,6 +313,7 @@ export interface FileRoutesByTo {
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/': typeof AuthenticatedIndexRoute
+  '/configuracoes/papeis': typeof AuthenticatedConfiguracoesPapeisRoute
   '/configuracoes/sistema': typeof AuthenticatedConfiguracoesSistemaRoute
   '/configuracoes/usuarios': typeof AuthenticatedConfiguracoesUsuariosRoute
   '/congregacoes/lista': typeof AuthenticatedCongregacoesListaRoute
@@ -345,6 +354,7 @@ export interface FileRoutesById {
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/configuracoes/papeis': typeof AuthenticatedConfiguracoesPapeisRoute
   '/_authenticated/configuracoes/sistema': typeof AuthenticatedConfiguracoesSistemaRoute
   '/_authenticated/configuracoes/usuarios': typeof AuthenticatedConfiguracoesUsuariosRoute
   '/_authenticated/congregacoes/lista': typeof AuthenticatedCongregacoesListaRoute
@@ -385,6 +395,7 @@ export interface FileRouteTypes {
     | '/arquivos'
     | '/calendario'
     | '/inicio'
+    | '/configuracoes/papeis'
     | '/configuracoes/sistema'
     | '/configuracoes/usuarios'
     | '/congregacoes/lista'
@@ -423,6 +434,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/inicio'
     | '/'
+    | '/configuracoes/papeis'
     | '/configuracoes/sistema'
     | '/configuracoes/usuarios'
     | '/congregacoes/lista'
@@ -462,6 +474,7 @@ export interface FileRouteTypes {
     | '/_authenticated/calendario'
     | '/_authenticated/inicio'
     | '/_authenticated/'
+    | '/_authenticated/configuracoes/papeis'
     | '/_authenticated/configuracoes/sistema'
     | '/_authenticated/configuracoes/usuarios'
     | '/_authenticated/congregacoes/lista'
@@ -549,6 +562,13 @@ declare module '@tanstack/react-router' {
       path: '/configuracoes'
       fullPath: '/configuracoes/'
       preLoaderRoute: typeof AuthenticatedConfiguracoesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes/papeis': {
+      id: '/_authenticated/configuracoes/papeis'
+      path: '/configuracoes/papeis'
+      fullPath: '/configuracoes/papeis'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesPapeisRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/configuracoes/sistema': {
@@ -769,6 +789,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedConfiguracoesPapeisRoute: typeof AuthenticatedConfiguracoesPapeisRoute
   AuthenticatedConfiguracoesSistemaRoute: typeof AuthenticatedConfiguracoesSistemaRoute
   AuthenticatedConfiguracoesUsuariosRoute: typeof AuthenticatedConfiguracoesUsuariosRoute
   AuthenticatedCongregacoesListaRoute: typeof AuthenticatedCongregacoesListaRoute
@@ -807,6 +828,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedConfiguracoesPapeisRoute: AuthenticatedConfiguracoesPapeisRoute,
   AuthenticatedConfiguracoesSistemaRoute:
     AuthenticatedConfiguracoesSistemaRoute,
   AuthenticatedConfiguracoesUsuariosRoute:

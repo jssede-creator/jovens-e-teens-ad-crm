@@ -10,6 +10,9 @@ export const CHAVE_ACESSO = ["acesso"] as const;
  * Carrega o acesso da conta: { isAdmin, modules[] }.
  * Serve só para filtrar menu e botões — a validação real é sempre do banco (RLS).
  *
+ * As permissões somam duas fontes: as soltas (module_access) e as que vêm dos
+ * papéis atribuídos. É a mesma conta que o banco faz em has_module_access.
+ *
  * Nunca devolve "sem acesso" como resposta boa: se a sessão ainda não hidratou ou
  * a consulta falha, o hook erra e tenta de novo. Guardar um resultado vazio deixava
  * a barra lateral só com os itens abertos a todos até o próximo login.
@@ -41,16 +44,29 @@ export function useAcesso() {
       const userId = sessao.session?.user?.id;
       if (!userId) throw new Error("Sessão ainda não disponível.");
 
-      const [papeis, modulos] = await Promise.all([
+      const [papeis, modulos, vinculos] = await Promise.all([
         supabase.from("user_roles").select("role").eq("user_id", userId),
         supabase.from("module_access").select("module_key").eq("user_id", userId),
+        supabase.from("usuario_papeis").select("papel_id").eq("user_id", userId),
       ]);
       if (papeis.error) throw papeis.error;
       if (modulos.error) throw modulos.error;
 
       const isAdmin = (papeis.data ?? []).some((p) => p.role === "admin");
-      const modules = (modulos.data ?? []).map((m) => m.module_key as ModuleKey);
-      return { isAdmin, modules };
+      const modules = new Set((modulos.data ?? []).map((m) => m.module_key as ModuleKey));
+
+      // Permissões vindas dos papéis. A tabela pode não existir num banco que
+      // ainda não recebeu a migração — nesse caso, só as soltas valem.
+      const idsPapeis = (vinculos.data ?? []).map((v) => v.papel_id);
+      if (!vinculos.error && idsPapeis.length > 0) {
+        const { data: permissoes } = await supabase
+          .from("papel_permissoes")
+          .select("module_key")
+          .in("papel_id", idsPapeis);
+        for (const p of permissoes ?? []) modules.add(p.module_key as ModuleKey);
+      }
+
+      return { isAdmin, modules: [...modules] };
     },
   });
 }
