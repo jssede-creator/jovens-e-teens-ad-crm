@@ -353,7 +353,7 @@ function ChamadaDialog({
               </div>
             </div>
 
-            <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+            <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto overflow-x-hidden px-1">
               {alunos.map((a) => {
                 const presente = presencas[a.cadastroId] ?? true;
                 return (
@@ -494,7 +494,7 @@ function IncluirAlunoDialog({
           </label>
         </div>
 
-        <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+        <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto overflow-x-hidden px-1">
           {visiveis.length === 0 ? (
             <p className="py-8 text-center text-sm text-jt-muted">
               Ninguém disponível para matricular.

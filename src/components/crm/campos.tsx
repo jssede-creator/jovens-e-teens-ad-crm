@@ -77,6 +77,8 @@ export function DataCampo({
   onValueChange,
   placeholder = "Escolha uma data",
   minimo,
+  anoInicial,
+  anoFinal,
   className,
 }: {
   valor: string;
@@ -84,11 +86,18 @@ export function DataCampo({
   placeholder?: string;
   /** Data ISO mínima selecionável. */
   minimo?: string;
+  /** Primeiro ano da lista. Padrão: 100 anos atrás — serve para nascimento. */
+  anoInicial?: number;
+  /** Último ano da lista. Padrão: daqui a 5 anos. */
+  anoFinal?: number;
   className?: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const selecionada = valor ? parseISO(valor) : undefined;
   const limite = minimo ? parseISO(minimo) : undefined;
+  const agora = new Date();
+  const inicio = new Date(anoInicial ?? agora.getFullYear() - 100, 0, 1);
+  const fim = new Date(anoFinal ?? agora.getFullYear() + 5, 11, 31);
 
   return (
     <Popover open={aberto} onOpenChange={setAberto}>
@@ -112,6 +121,12 @@ export function DataCampo({
         <Calendar
           mode="single"
           locale={ptBR}
+          captionLayout="dropdown"
+          formatters={{
+            formatMonthDropdown: (d) => d.toLocaleString("pt-BR", { month: "long" }),
+          }}
+          startMonth={limite && limite > inicio ? limite : inicio}
+          endMonth={fim}
           {...(selecionada ? { selected: selecionada, defaultMonth: selecionada } : {})}
           {...(limite ? { disabled: { before: limite } } : {})}
           onSelect={(d) => {

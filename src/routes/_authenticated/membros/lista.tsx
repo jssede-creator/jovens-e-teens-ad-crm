@@ -259,7 +259,7 @@ function NovoMembroDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-1">
           <Field label="Nome completo" obrigatorio erro={erros["nome_completo"] ?? ""}>
             <TextInput
               value={form.nome_completo}
@@ -274,6 +274,8 @@ function NovoMembroDialog({
                 valor={form.data_nascimento}
                 onValueChange={(v) => campo("data_nascimento", v)}
                 placeholder="Escolha a data"
+                anoInicial={1920}
+                anoFinal={new Date().getFullYear()}
               />
             </Field>
             <Field label="Congregação">
@@ -426,7 +428,7 @@ function ImportarDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-1">
           <div className="rounded-xl border border-jt-line bg-jt-panel-2 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs font-medium text-jt-text">Ordem dos campos</p>
