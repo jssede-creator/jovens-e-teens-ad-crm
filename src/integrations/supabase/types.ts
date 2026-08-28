@@ -468,7 +468,6 @@ export type Database = {
           hora_inicio: string
           horario_id: string | null
           id: string
-          local: string | null
           mensagem: string | null
           resposta: string | null
           solicitante_email: string
@@ -485,7 +484,6 @@ export type Database = {
           hora_inicio: string
           horario_id?: string | null
           id?: string
-          local?: string | null
           mensagem?: string | null
           resposta?: string | null
           solicitante_email: string
@@ -502,7 +500,6 @@ export type Database = {
           hora_inicio?: string
           horario_id?: string | null
           id?: string
-          local?: string | null
           mensagem?: string | null
           resposta?: string | null
           solicitante_email?: string
@@ -528,7 +525,6 @@ export type Database = {
           data: string
           hora_fim: string
           hora_inicio: string
-          local: string | null
           id: string
         }
         Insert: {
@@ -537,7 +533,6 @@ export type Database = {
           data: string
           hora_fim: string
           hora_inicio: string
-          local?: string | null
           id?: string
         }
         Update: {
@@ -546,7 +541,6 @@ export type Database = {
           data?: string
           hora_fim?: string
           hora_inicio?: string
-          local?: string | null
           id?: string
         }
         Relationships: []
