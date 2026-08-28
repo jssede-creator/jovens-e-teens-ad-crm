@@ -1,19 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { MessageCircle } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { CalendarClock, MapPin, MessageCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
 import { Bloco, PageHeader, VazioBloco } from "@/components/crm/pagina";
 import { Carregando, SemPermissao } from "@/components/sem-permissao";
-import { Badge } from "@/components/ui/badge";
 import { useAcesso } from "@/hooks/use-acesso";
 import { supabase } from "@/integrations/supabase/client";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { hojeISO } from "@/lib/ebd";
 import { dataParaBR, hora, mensagemErro } from "@/lib/formato";
 import { podeVer } from "@/lib/nav";
-import { STATUS_PAPO } from "@/lib/papo";
+import { carregarPapoReto, horariosLivres, type Horario } from "@/lib/papo";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/papo-reto/agendar")({
@@ -33,19 +32,19 @@ export const Route = createFileRoute("/_authenticated/papo-reto/agendar")({
 
 function PapoRetoAgendar() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { data: acesso, isLoading: carregandoAcesso } = useAcesso();
   const pode = podeVer({ tipo: "modulo", modulo: "papo_reto" }, acesso);
 
   const [horarioId, setHorarioId] = useState("");
   const [assunto, setAssunto] = useState("");
-  const [mensagem, setMensagem] = useState("");
+  const [observacao, setObservacao] = useState("");
   const [erro, setErro] = useState("");
-  const [ok, setOk] = useState("");
   const [conta, setConta] = useState<{ id: string; nome: string; email: string } | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const user = data.user;
+    supabase.auth.getSession().then(({ data }) => {
+      const user = data.session?.user;
       if (!user) return;
       setConta({
         id: user.id,
@@ -56,44 +55,28 @@ function PapoRetoAgendar() {
   }, []);
 
   const consulta = useQuery({
-    queryKey: ["papo-reto-agendar"],
+    queryKey: ["papo-reto"],
     enabled: pode,
-    queryFn: async () => {
-      const hoje = hojeISO();
-      const [horarios, agendamentos] = await Promise.all([
-        supabase
-          .from("papo_reto_horarios")
-          .select("id, data, hora_inicio, hora_fim")
-          .gte("data", hoje)
-          .order("data")
-          .order("hora_inicio"),
-        supabase
-          .from("papo_reto_agendamentos")
-          .select("id, horario_id, data, hora_inicio, hora_fim, assunto, status, resposta")
-          .order("data", { ascending: false }),
-      ]);
-      if (horarios.error) throw horarios.error;
-      if (agendamentos.error) throw agendamentos.error;
-      return { horarios: horarios.data ?? [], agendamentos: agendamentos.data ?? [] };
-    },
+    queryFn: carregarPapoReto,
   });
 
-  const ocupados = useMemo(
-    () =>
-      new Set(
-        (consulta.data?.agendamentos ?? [])
-          .filter((a) => a.status !== "recusado" && a.horario_id)
-          .map((a) => a.horario_id as string),
-      ),
-    [consulta.data],
-  );
+  /** Janelas livres de hoje em diante, agrupadas por dia. */
+  const porDia = useMemo(() => {
+    const hoje = hojeISO();
+    const livres = horariosLivres(
+      consulta.data?.horarios ?? [],
+      consulta.data?.agendamentos ?? [],
+    ).filter((h) => h.data >= hoje);
 
-  const livres = (consulta.data?.horarios ?? []).filter((h) => !ocupados.has(h.id));
-  const meus = consulta.data?.agendamentos ?? [];
+    const mapa = new Map<string, Horario[]>();
+    for (const h of livres) mapa.set(h.data, [...(mapa.get(h.data) ?? []), h]);
+    return [...mapa].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [consulta.data]);
+
+  const escolhido = porDia.flatMap(([, hs]) => hs).find((h) => h.id === horarioId);
 
   const agendar = useMutation({
     mutationFn: async () => {
-      const escolhido = livres.find((h) => h.id === horarioId);
       if (!escolhido || !conta) throw new Error("horario");
       const { data, error } = await supabase
         .from("papo_reto_agendamentos")
@@ -105,8 +88,9 @@ function PapoRetoAgendar() {
           data: escolhido.data,
           hora_inicio: escolhido.hora_inicio,
           hora_fim: escolhido.hora_fim,
+          ...(escolhido.local ? { local: escolhido.local } : {}),
           assunto: assunto.trim(),
-          mensagem: mensagem.trim() || null,
+          mensagem: observacao.trim() || null,
         })
         .select("id")
         .single();
@@ -119,14 +103,9 @@ function PapoRetoAgendar() {
       });
     },
     onSuccess: async () => {
-      setHorarioId("");
-      setAssunto("");
-      setMensagem("");
-      setErro("");
-      setOk("Pedido enviado. A liderança responde por aqui.");
-      await queryClient.invalidateQueries({ queryKey: ["papo-reto-agendar"] });
-      await queryClient.invalidateQueries({ queryKey: ["papo-reto-agenda"] });
+      await queryClient.invalidateQueries({ queryKey: ["papo-reto"] });
       await queryClient.invalidateQueries({ queryKey: ["inicio"] });
+      navigate({ to: "/papo-reto/meus-agendamentos" });
     },
     onError: (e) =>
       setErro(
@@ -137,7 +116,7 @@ function PapoRetoAgendar() {
   if (carregandoAcesso) {
     return (
       <>
-        <PageHeader titulo="Papo reto" />
+        <PageHeader titulo="Agendar papo reto" />
         <Carregando />
       </>
     );
@@ -146,7 +125,7 @@ function PapoRetoAgendar() {
   if (!pode) {
     return (
       <>
-        <PageHeader titulo="Papo reto" />
+        <PageHeader titulo="Agendar papo reto" />
         <SemPermissao mensagem="Sua conta não tem acesso ao papo reto." />
       </>
     );
@@ -156,100 +135,104 @@ function PapoRetoAgendar() {
     <>
       <PageHeader
         titulo="Agendar papo reto"
-        descricao="Escolha um dos horários abertos pela liderança e conte o assunto."
+        descricao="Escolha uma das janelas abertas pela liderança e conte o assunto. Cada pedido passa por aprovação."
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
         <Bloco titulo="Horários abertos" descricao="Só aparecem datas de hoje em diante">
           {consulta.isLoading ? (
             <VazioBloco>Carregando…</VazioBloco>
-          ) : livres.length === 0 ? (
+          ) : porDia.length === 0 ? (
             <VazioBloco>Nenhum horário aberto no momento.</VazioBloco>
           ) : (
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {livres.map((h) => (
-                <li key={h.id}>
-                  <button
-                    type="button"
-                    onClick={() => setHorarioId(h.id)}
-                    aria-pressed={horarioId === h.id}
-                    className={cn(
-                      "w-full rounded-xl border px-3 py-2 text-left transition",
-                      horarioId === h.id
-                        ? "border-jt-gold/60 bg-jt-panel-2"
-                        : "border-jt-line hover:bg-jt-panel-2",
-                    )}
-                  >
-                    <p className="num text-sm font-medium text-jt-text">{dataParaBR(h.data)}</p>
-                    <p className="num text-xs text-jt-muted">
-                      {hora(h.hora_inicio)}–{hora(h.hora_fim)}
-                    </p>
-                  </button>
-                </li>
+            <div className="space-y-4">
+              {porDia.map(([dia, janelas]) => (
+                <div key={dia}>
+                  <p className="num mb-2 text-xs font-medium uppercase tracking-wider text-jt-muted">
+                    {dataParaBR(dia)}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {janelas.map((h) => {
+                      const ativo = horarioId === h.id;
+                      return (
+                        <button
+                          key={h.id}
+                          type="button"
+                          onClick={() => setHorarioId(h.id)}
+                          aria-pressed={ativo}
+                          className={cn(
+                            "rounded-full border px-3 py-1.5 text-left text-xs transition",
+                            ativo
+                              ? "border-transparent bg-jt-blue text-white"
+                              : "border-jt-line text-jt-text hover:bg-jt-panel-2",
+                          )}
+                        >
+                          <span className="num font-medium">{hora(h.hora_inicio)}</span>
+                          {h.local ? (
+                            <span className={cn("ml-1.5", ativo ? "opacity-80" : "text-jt-muted")}>
+                              · {h.local}
+                            </span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
+          )}
+        </Bloco>
+
+        <Bloco titulo="Seu pedido">
+          {escolhido ? (
+            <div className="mb-4 rounded-xl border border-jt-line bg-jt-panel-2 p-3">
+              <p className="flex items-center gap-2 text-sm text-jt-text">
+                <CalendarClock className="h-4 w-4 text-jt-muted" aria-hidden />
+                <span className="num">
+                  {dataParaBR(escolhido.data)} · {hora(escolhido.hora_inicio)}–
+                  {hora(escolhido.hora_fim)}
+                </span>
+              </p>
+              {escolhido.local ? (
+                <p className="mt-1 flex items-center gap-2 text-xs text-jt-muted">
+                  <MapPin className="h-3.5 w-3.5" aria-hidden />
+                  {escolhido.local}
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <p className="mb-4 text-sm text-jt-muted">Escolha um horário ao lado para começar.</p>
           )}
 
-          <div className="mt-4 space-y-4 border-t border-jt-line pt-4">
+          <div className="space-y-4">
             <Field label="Assunto" obrigatorio>
               <TextInput
                 value={assunto}
-                onValueChange={setAssunto}
-                placeholder="Ex.: conversa sobre a liderança de louvor"
+                onValueChange={(v) => {
+                  setAssunto(v);
+                  setErro("");
+                }}
+                placeholder="Ex.: conversa sobre a equipe de louvor"
               />
             </Field>
-            <Field label="Mensagem" dica="Opcional — ajuda a liderança a se preparar.">
+            <Field label="Observação" dica="Opcional — ajuda a liderança a se preparar.">
               <textarea
-                value={mensagem}
-                onChange={(e) => setMensagem(e.target.value)}
-                rows={3}
-                className="w-full rounded-[12px] border border-jt-line bg-jt-panel-2 p-3 text-sm text-jt-text placeholder:text-jt-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jt-gold"
+                value={observacao}
+                onChange={(e) => setObservacao(e.target.value)}
+                rows={4}
+                className="w-full rounded-lg border border-jt-line bg-jt-panel p-3 text-sm text-jt-text placeholder:text-jt-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jt-gold"
               />
             </Field>
             {erro ? <p className="text-xs text-jt-coral">{erro}</p> : null}
-            {ok ? <p className="text-xs text-jt-success">{ok}</p> : null}
-            <div className="flex justify-end">
-              <PillButton
-                disabled={!horarioId || !assunto.trim() || agendar.isPending}
-                onClick={() => agendar.mutate()}
-              >
-                <MessageCircle className="h-4 w-4" aria-hidden /> Pedir papo reto
-              </PillButton>
-            </div>
+            <PillButton
+              className="w-full"
+              disabled={!horarioId || !assunto.trim() || agendar.isPending}
+              onClick={() => agendar.mutate()}
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden />
+              {agendar.isPending ? "Enviando…" : "Pedir papo reto"}
+            </PillButton>
           </div>
-        </Bloco>
-
-        <Bloco titulo="Meus pedidos" descricao="Histórico das suas conversas">
-          {consulta.isLoading ? (
-            <VazioBloco>Carregando…</VazioBloco>
-          ) : meus.length === 0 ? (
-            <VazioBloco>Você ainda não pediu nenhum papo reto.</VazioBloco>
-          ) : (
-            <ul className="space-y-2">
-              {meus.map((a) => {
-                const status = STATUS_PAPO[a.status] ?? STATUS_PAPO["pendente"]!;
-                return (
-                  <li key={a.id} className="rounded-xl border border-jt-line px-3 py-2">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-medium text-jt-text">{a.assunto}</p>
-                      <Badge
-                        variant="outline"
-                        className={cn("border-jt-line font-normal", status.classe)}
-                      >
-                        {status.rotulo}
-                      </Badge>
-                    </div>
-                    <p className="num mt-1 text-xs text-jt-muted">
-                      {dataParaBR(a.data)} · {hora(a.hora_inicio)}–{hora(a.hora_fim)}
-                    </p>
-                    {a.resposta ? (
-                      <p className="mt-1 text-xs text-jt-text">Resposta: {a.resposta}</p>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
         </Bloco>
       </div>
     </>

@@ -37,8 +37,8 @@ export function useAcesso() {
     retryDelay: (tentativa) => Math.min(1000 * 2 ** tentativa, 5000),
     refetchOnWindowFocus: true,
     queryFn: async () => {
-      const { data: sessao } = await supabase.auth.getUser();
-      const userId = sessao.user?.id;
+      const { data: sessao } = await supabase.auth.getSession();
+      const userId = sessao.session?.user?.id;
       if (!userId) throw new Error("Sessão ainda não disponível.");
 
       const [papeis, modulos] = await Promise.all([

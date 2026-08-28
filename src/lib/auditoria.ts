@@ -8,13 +8,12 @@ export async function registrarAuditoria(entrada: {
   detalhe?: string;
 }) {
   try {
-    const { data } = await supabase.auth.getUser();
-    const user = data.user;
+    const { data } = await supabase.auth.getSession();
+    const user = data.session?.user;
     if (!user) return;
     await supabase.from("auditoria").insert({
       user_id: user.id,
-      user_nome:
-        (user.user_metadata?.["nome"] as string | undefined) ?? user.email ?? "—",
+      user_nome: (user.user_metadata?.["nome"] as string | undefined) ?? user.email ?? "—",
       acao: entrada.acao,
       entidade: entrada.entidade,
       entidade_id: entrada.entidadeId ?? null,

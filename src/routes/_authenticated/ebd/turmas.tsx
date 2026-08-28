@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Church, GraduationCap, Plus } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 
-import { Field, PillButton, SelectInput, TextInput } from "@/components/cadastro/ui";
+import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
+import { SelectCampo } from "@/components/crm/campos";
 import { AvatarIniciais, PageHeader } from "@/components/crm/pagina";
 import {
   ColumnsMenu,
@@ -159,10 +160,10 @@ function TurmaDialog({
             />
           </Field>
           <Field label="Congregação" obrigatorio erro={erros["congregacao_id"] ?? ""}>
-            <SelectInput
+            <SelectCampo
               opcoes={congregacoes.map((c) => ({ valor: c.id, rotulo: c.nome }))}
               placeholder="Selecione"
-              value={form.congregacao_id}
+              valor={form.congregacao_id}
               onValueChange={(v) => campo("congregacao_id", v)}
             />
           </Field>

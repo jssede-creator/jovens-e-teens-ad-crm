@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { KanbanSquare, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { DateInput, Field, PillButton, SelectInput, TextInput } from "@/components/cadastro/ui";
+import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
+import { DataCampo, SelectCampo } from "@/components/crm/campos";
 import { PageHeader } from "@/components/crm/pagina";
 import { Carregando, SemPermissao } from "@/components/sem-permissao";
 import {
@@ -143,10 +144,10 @@ function ProjetoDialog({
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Coluna">
-              <SelectInput
+              <SelectCampo
                 opcoes={COLUNAS.map((c) => ({ valor: c.chave, rotulo: c.rotulo }))}
                 placeholder="Selecione"
-                value={form.status}
+                valor={form.status}
                 onValueChange={(v) => campo("status", v as Status)}
               />
             </Field>
@@ -159,7 +160,7 @@ function ProjetoDialog({
             </Field>
           </div>
           <Field label="Prazo">
-            <DateInput value={form.prazo} onValueChange={(v) => campo("prazo", v)} />
+            <DataCampo valor={form.prazo} onValueChange={(v) => campo("prazo", v)} />
           </Field>
           {erro ? <p className="text-xs text-jt-coral">{erro}</p> : null}
         </div>

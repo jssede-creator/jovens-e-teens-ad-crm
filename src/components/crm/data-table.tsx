@@ -1,12 +1,4 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  ChevronsUpDown,
-  Columns3,
-  Filter,
-  Group,
-  Search,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, Columns3, Filter, Group, Search } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 
 import {
@@ -151,9 +143,7 @@ export function DataTable<T>({
     setPagina(1);
     setFiltros((atual) => {
       const lista = atual[chave] ?? [];
-      const nova = lista.includes(valor)
-        ? lista.filter((v) => v !== valor)
-        : [...lista, valor];
+      const nova = lista.includes(valor) ? lista.filter((v) => v !== valor) : [...lista, valor];
       return { ...atual, [chave]: nova };
     });
   };

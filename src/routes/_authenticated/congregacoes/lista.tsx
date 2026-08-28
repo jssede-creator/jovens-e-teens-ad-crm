@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Church, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 
-import { Field, PillButton, SelectInput, TextInput } from "@/components/cadastro/ui";
+import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
+import { SelectCampo } from "@/components/crm/campos";
 import {
   ColumnsMenu,
   EmptyRow,
@@ -394,10 +395,10 @@ function CongregacaoDialog({
               <TextInput value={form.cidade} onValueChange={(v) => campo("cidade", v)} />
             </Field>
             <Field label="Estado" obrigatorio erro={errosCampo["estado"] ?? ""}>
-              <SelectInput
+              <SelectCampo
                 opcoes={UFS.map((uf) => ({ valor: uf, rotulo: uf }))}
                 placeholder="UF"
-                value={form.estado}
+                valor={form.estado}
                 onValueChange={(v) => campo("estado", v)}
               />
             </Field>

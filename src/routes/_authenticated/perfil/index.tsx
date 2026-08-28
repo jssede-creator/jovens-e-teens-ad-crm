@@ -37,8 +37,8 @@ function MeusDados() {
   const [conta, setConta] = useState<{ nome: string; email: string; criado: string } | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const user = data.user;
+    supabase.auth.getSession().then(({ data }) => {
+      const user = data.session?.user;
       if (!user) return;
       setConta({
         nome: (user.user_metadata?.["nome"] as string | undefined) ?? user.email ?? "—",
@@ -51,8 +51,8 @@ function MeusDados() {
   const cadastro = useQuery({
     queryKey: ["meu-cadastro"],
     queryFn: async () => {
-      const { data: sessao } = await supabase.auth.getUser();
-      const userId = sessao.user?.id;
+      const { data: sessao } = await supabase.auth.getSession();
+      const userId = sessao.session?.user?.id;
       if (!userId) return null;
       const { data, error } = await supabase
         .from("cadastros")

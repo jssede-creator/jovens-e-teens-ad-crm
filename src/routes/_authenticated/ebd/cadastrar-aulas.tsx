@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CalendarPlus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Field, PillButton, SelectInput, TextInput } from "@/components/cadastro/ui";
+import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
+import { SelectCampo } from "@/components/crm/campos";
 import { CalendarioMes } from "@/components/crm/calendario-mes";
 import { PageHeader } from "@/components/crm/pagina";
 import { Carregando, SemPermissao } from "@/components/sem-permissao";
@@ -271,13 +272,13 @@ function CadastrarAulas() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Congregação">
-                    <SelectInput
+                    <SelectCampo
                       opcoes={(consulta.data?.congregacoes ?? []).map((c) => ({
                         valor: c.id,
                         rotulo: c.nome,
                       }))}
                       placeholder="Selecione"
-                      value={congregacaoId}
+                      valor={congregacaoId}
                       onValueChange={(v) => {
                         setCongregacaoId(v);
                         setTurmaId("");
@@ -285,11 +286,11 @@ function CadastrarAulas() {
                     />
                   </Field>
                   <Field label="Turma">
-                    <SelectInput
+                    <SelectCampo
                       opcoes={turmasDaCongregacao.map((t) => ({ valor: t.id, rotulo: t.nome }))}
                       placeholder={congregacaoId ? "Selecione" : "Escolha a congregação primeiro"}
                       disabled={!congregacaoId}
-                      value={turmaId}
+                      valor={turmaId}
                       onValueChange={setTurmaId}
                     />
                   </Field>
@@ -305,18 +306,18 @@ function CadastrarAulas() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Horário início">
-                    <SelectInput
+                    <SelectCampo
                       opcoes={HORARIOS.map((h) => ({ valor: h, rotulo: h }))}
                       placeholder="Selecione"
-                      value={inicio}
+                      valor={inicio}
                       onValueChange={setInicio}
                     />
                   </Field>
                   <Field label="Horário fim">
-                    <SelectInput
+                    <SelectCampo
                       opcoes={HORARIOS.map((h) => ({ valor: h, rotulo: h }))}
                       placeholder="Selecione"
-                      value={fim}
+                      valor={fim}
                       onValueChange={setFim}
                     />
                   </Field>

@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Download, FolderClosed, FolderPlus, Search, Trash2, Upload } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
-import { Field, PillButton, SelectInput, TextInput } from "@/components/cadastro/ui";
+import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
+import { SelectCampo } from "@/components/crm/campos";
 import { PageHeader } from "@/components/crm/pagina";
 import {
   EmptyRow,
@@ -133,8 +134,8 @@ function Arquivos() {
   const enviar = useMutation({
     mutationFn: async (file: File) => {
       if (file.size > LIMITE_BYTES) throw new Error("tamanho");
-      const { data: sessao } = await supabase.auth.getUser();
-      const user = sessao.user;
+      const { data: sessao } = await supabase.auth.getSession();
+      const user = sessao.session?.user;
       const caminho = `${crypto.randomUUID()}-${file.name.replace(/[^\w.-]/g, "_")}`;
 
       const upload = await supabase.storage.from("arquivos").upload(caminho, file, {
@@ -417,10 +418,10 @@ function Arquivos() {
         <div className="mt-3 flex items-center gap-2">
           <span className="text-xs text-jt-muted">Enviar para a pasta:</span>
           <div className="w-56">
-            <SelectInput
+            <SelectCampo
               opcoes={pastas.map((p) => ({ valor: p.id, rotulo: p.nome }))}
               placeholder="Sem pasta"
-              value={pastaDestino}
+              valor={pastaDestino}
               onValueChange={setPastaDestino}
               className="h-9"
             />

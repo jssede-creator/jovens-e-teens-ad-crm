@@ -42,8 +42,8 @@ function EbdPainel() {
   const [nome, setNome] = useState("");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setNome((data.user?.user_metadata?.["nome"] as string | undefined) ?? "");
+    supabase.auth.getSession().then(({ data }) => {
+      setNome((data.session?.user?.user_metadata?.["nome"] as string | undefined) ?? "");
     });
   }, []);
 

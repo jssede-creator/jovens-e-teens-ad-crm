@@ -1,6 +1,9 @@
 /** Cálculos compartilhados da EBD e utilidades de data. */
 
-export function idadeEm(dataNascimento: string | null | undefined, hoje = new Date()): number | null {
+export function idadeEm(
+  dataNascimento: string | null | undefined,
+  hoje = new Date(),
+): number | null {
   if (!dataNascimento) return null;
   const [ano, mes, dia] = dataNascimento.slice(0, 10).split("-").map(Number);
   if (!ano || !mes || !dia) return null;
@@ -62,6 +65,31 @@ export function iniciais(nome: string): string {
 }
 
 export const UFS = [
-  "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR",
-  "PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
 ];

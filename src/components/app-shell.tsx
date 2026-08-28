@@ -67,8 +67,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const user = data.user;
+    supabase.auth.getSession().then(({ data }) => {
+      const user = data.session?.user;
       if (!user) return;
       setConta({
         nome: (user.user_metadata?.["nome"] as string | undefined) ?? "Minha conta",
@@ -181,7 +181,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="ml-auto flex items-center gap-1">
             <Link
-              to="/perfil"
+              to="/configuracoes"
               aria-label="Configurações"
               className="rounded-lg p-2 text-jt-muted hover:bg-jt-panel-2 hover:text-jt-text"
             >

@@ -30,8 +30,10 @@ import { Route as AuthenticatedMembrosIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedMembrosListaRouteImport } from './routes/_authenticated/membros/lista'
 import { Route as AuthenticatedMembrosPainelRouteImport } from './routes/_authenticated/membros/painel'
 import { Route as AuthenticatedPapoRetoIndexRouteImport } from './routes/_authenticated/papo-reto/index'
-import { Route as AuthenticatedPapoRetoAgendaRouteImport } from './routes/_authenticated/papo-reto/agenda'
 import { Route as AuthenticatedPapoRetoAgendarRouteImport } from './routes/_authenticated/papo-reto/agendar'
+import { Route as AuthenticatedPapoRetoAprovacoesRouteImport } from './routes/_authenticated/papo-reto/aprovacoes'
+import { Route as AuthenticatedPapoRetoCadastrarHorarioRouteImport } from './routes/_authenticated/papo-reto/cadastrar-horario'
+import { Route as AuthenticatedPapoRetoMeusAgendamentosRouteImport } from './routes/_authenticated/papo-reto/meus-agendamentos'
 import { Route as AuthenticatedPerfilIndexRouteImport } from './routes/_authenticated/perfil/index'
 import { Route as AuthenticatedPerfilAcessosRouteImport } from './routes/_authenticated/perfil/acessos'
 import { Route as AuthenticatedSuporteIndexRouteImport } from './routes/_authenticated/suporte/index'
@@ -154,16 +156,28 @@ const AuthenticatedPapoRetoIndexRoute =
     path: '/papo-reto/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedPapoRetoAgendaRoute =
-  AuthenticatedPapoRetoAgendaRouteImport.update({
-    id: '/papo-reto/agenda',
-    path: '/papo-reto/agenda',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedPapoRetoAgendarRoute =
   AuthenticatedPapoRetoAgendarRouteImport.update({
     id: '/papo-reto/agendar',
     path: '/papo-reto/agendar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPapoRetoAprovacoesRoute =
+  AuthenticatedPapoRetoAprovacoesRouteImport.update({
+    id: '/papo-reto/aprovacoes',
+    path: '/papo-reto/aprovacoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPapoRetoCadastrarHorarioRoute =
+  AuthenticatedPapoRetoCadastrarHorarioRouteImport.update({
+    id: '/papo-reto/cadastrar-horario',
+    path: '/papo-reto/cadastrar-horario',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPapoRetoMeusAgendamentosRoute =
+  AuthenticatedPapoRetoMeusAgendamentosRouteImport.update({
+    id: '/papo-reto/meus-agendamentos',
+    path: '/papo-reto/meus-agendamentos',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPerfilIndexRoute =
@@ -213,8 +227,10 @@ export interface FileRoutesByFullPath {
   '/ebd/turmas': typeof AuthenticatedEbdTurmasRoute
   '/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/membros/painel': typeof AuthenticatedMembrosPainelRoute
-  '/papo-reto/agenda': typeof AuthenticatedPapoRetoAgendaRoute
   '/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
+  '/papo-reto/aprovacoes': typeof AuthenticatedPapoRetoAprovacoesRoute
+  '/papo-reto/cadastrar-horario': typeof AuthenticatedPapoRetoCadastrarHorarioRoute
+  '/papo-reto/meus-agendamentos': typeof AuthenticatedPapoRetoMeusAgendamentosRoute
   '/perfil/acessos': typeof AuthenticatedPerfilAcessosRoute
   '/suporte/ajuda': typeof AuthenticatedSuporteAjudaRoute
   '/suporte/historico': typeof AuthenticatedSuporteHistoricoRoute
@@ -242,8 +258,10 @@ export interface FileRoutesByTo {
   '/ebd/turmas': typeof AuthenticatedEbdTurmasRoute
   '/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/membros/painel': typeof AuthenticatedMembrosPainelRoute
-  '/papo-reto/agenda': typeof AuthenticatedPapoRetoAgendaRoute
   '/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
+  '/papo-reto/aprovacoes': typeof AuthenticatedPapoRetoAprovacoesRoute
+  '/papo-reto/cadastrar-horario': typeof AuthenticatedPapoRetoCadastrarHorarioRoute
+  '/papo-reto/meus-agendamentos': typeof AuthenticatedPapoRetoMeusAgendamentosRoute
   '/perfil/acessos': typeof AuthenticatedPerfilAcessosRoute
   '/suporte/ajuda': typeof AuthenticatedSuporteAjudaRoute
   '/suporte/historico': typeof AuthenticatedSuporteHistoricoRoute
@@ -273,8 +291,10 @@ export interface FileRoutesById {
   '/_authenticated/ebd/turmas': typeof AuthenticatedEbdTurmasRoute
   '/_authenticated/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/_authenticated/membros/painel': typeof AuthenticatedMembrosPainelRoute
-  '/_authenticated/papo-reto/agenda': typeof AuthenticatedPapoRetoAgendaRoute
   '/_authenticated/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
+  '/_authenticated/papo-reto/aprovacoes': typeof AuthenticatedPapoRetoAprovacoesRoute
+  '/_authenticated/papo-reto/cadastrar-horario': typeof AuthenticatedPapoRetoCadastrarHorarioRoute
+  '/_authenticated/papo-reto/meus-agendamentos': typeof AuthenticatedPapoRetoMeusAgendamentosRoute
   '/_authenticated/perfil/acessos': typeof AuthenticatedPerfilAcessosRoute
   '/_authenticated/suporte/ajuda': typeof AuthenticatedSuporteAjudaRoute
   '/_authenticated/suporte/historico': typeof AuthenticatedSuporteHistoricoRoute
@@ -304,8 +324,10 @@ export interface FileRouteTypes {
     | '/ebd/turmas'
     | '/membros/lista'
     | '/membros/painel'
-    | '/papo-reto/agenda'
     | '/papo-reto/agendar'
+    | '/papo-reto/aprovacoes'
+    | '/papo-reto/cadastrar-horario'
+    | '/papo-reto/meus-agendamentos'
     | '/perfil/acessos'
     | '/suporte/ajuda'
     | '/suporte/historico'
@@ -333,8 +355,10 @@ export interface FileRouteTypes {
     | '/ebd/turmas'
     | '/membros/lista'
     | '/membros/painel'
-    | '/papo-reto/agenda'
     | '/papo-reto/agendar'
+    | '/papo-reto/aprovacoes'
+    | '/papo-reto/cadastrar-horario'
+    | '/papo-reto/meus-agendamentos'
     | '/perfil/acessos'
     | '/suporte/ajuda'
     | '/suporte/historico'
@@ -363,8 +387,10 @@ export interface FileRouteTypes {
     | '/_authenticated/ebd/turmas'
     | '/_authenticated/membros/lista'
     | '/_authenticated/membros/painel'
-    | '/_authenticated/papo-reto/agenda'
     | '/_authenticated/papo-reto/agendar'
+    | '/_authenticated/papo-reto/aprovacoes'
+    | '/_authenticated/papo-reto/cadastrar-horario'
+    | '/_authenticated/papo-reto/meus-agendamentos'
     | '/_authenticated/perfil/acessos'
     | '/_authenticated/suporte/ajuda'
     | '/_authenticated/suporte/historico'
@@ -531,18 +557,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPapoRetoIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/papo-reto/agenda': {
-      id: '/_authenticated/papo-reto/agenda'
-      path: '/papo-reto/agenda'
-      fullPath: '/papo-reto/agenda'
-      preLoaderRoute: typeof AuthenticatedPapoRetoAgendaRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/papo-reto/agendar': {
       id: '/_authenticated/papo-reto/agendar'
       path: '/papo-reto/agendar'
       fullPath: '/papo-reto/agendar'
       preLoaderRoute: typeof AuthenticatedPapoRetoAgendarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/papo-reto/aprovacoes': {
+      id: '/_authenticated/papo-reto/aprovacoes'
+      path: '/papo-reto/aprovacoes'
+      fullPath: '/papo-reto/aprovacoes'
+      preLoaderRoute: typeof AuthenticatedPapoRetoAprovacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/papo-reto/cadastrar-horario': {
+      id: '/_authenticated/papo-reto/cadastrar-horario'
+      path: '/papo-reto/cadastrar-horario'
+      fullPath: '/papo-reto/cadastrar-horario'
+      preLoaderRoute: typeof AuthenticatedPapoRetoCadastrarHorarioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/papo-reto/meus-agendamentos': {
+      id: '/_authenticated/papo-reto/meus-agendamentos'
+      path: '/papo-reto/meus-agendamentos'
+      fullPath: '/papo-reto/meus-agendamentos'
+      preLoaderRoute: typeof AuthenticatedPapoRetoMeusAgendamentosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/perfil/': {
@@ -598,8 +638,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEbdTurmasRoute: typeof AuthenticatedEbdTurmasRoute
   AuthenticatedMembrosListaRoute: typeof AuthenticatedMembrosListaRoute
   AuthenticatedMembrosPainelRoute: typeof AuthenticatedMembrosPainelRoute
-  AuthenticatedPapoRetoAgendaRoute: typeof AuthenticatedPapoRetoAgendaRoute
   AuthenticatedPapoRetoAgendarRoute: typeof AuthenticatedPapoRetoAgendarRoute
+  AuthenticatedPapoRetoAprovacoesRoute: typeof AuthenticatedPapoRetoAprovacoesRoute
+  AuthenticatedPapoRetoCadastrarHorarioRoute: typeof AuthenticatedPapoRetoCadastrarHorarioRoute
+  AuthenticatedPapoRetoMeusAgendamentosRoute: typeof AuthenticatedPapoRetoMeusAgendamentosRoute
   AuthenticatedPerfilAcessosRoute: typeof AuthenticatedPerfilAcessosRoute
   AuthenticatedSuporteAjudaRoute: typeof AuthenticatedSuporteAjudaRoute
   AuthenticatedSuporteHistoricoRoute: typeof AuthenticatedSuporteHistoricoRoute
@@ -629,8 +671,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEbdTurmasRoute: AuthenticatedEbdTurmasRoute,
   AuthenticatedMembrosListaRoute: AuthenticatedMembrosListaRoute,
   AuthenticatedMembrosPainelRoute: AuthenticatedMembrosPainelRoute,
-  AuthenticatedPapoRetoAgendaRoute: AuthenticatedPapoRetoAgendaRoute,
   AuthenticatedPapoRetoAgendarRoute: AuthenticatedPapoRetoAgendarRoute,
+  AuthenticatedPapoRetoAprovacoesRoute: AuthenticatedPapoRetoAprovacoesRoute,
+  AuthenticatedPapoRetoCadastrarHorarioRoute:
+    AuthenticatedPapoRetoCadastrarHorarioRoute,
+  AuthenticatedPapoRetoMeusAgendamentosRoute:
+    AuthenticatedPapoRetoMeusAgendamentosRoute,
   AuthenticatedPerfilAcessosRoute: AuthenticatedPerfilAcessosRoute,
   AuthenticatedSuporteAjudaRoute: AuthenticatedSuporteAjudaRoute,
   AuthenticatedSuporteHistoricoRoute: AuthenticatedSuporteHistoricoRoute,

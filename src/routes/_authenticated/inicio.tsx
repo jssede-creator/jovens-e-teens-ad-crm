@@ -60,8 +60,8 @@ function MenuInicial() {
   const [nome, setNome] = useState("");
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setNome((data.user?.user_metadata?.["nome"] as string | undefined) ?? "");
+    supabase.auth.getSession().then(({ data }) => {
+      setNome((data.session?.user?.user_metadata?.["nome"] as string | undefined) ?? "");
     });
   }, []);
 
@@ -70,8 +70,8 @@ function MenuInicial() {
   const resumo = useQuery({
     queryKey: ["inicio", vePapo],
     queryFn: async () => {
-      const { data: sessao } = await supabase.auth.getUser();
-      const userId = sessao.user?.id;
+      const { data: sessao } = await supabase.auth.getSession();
+      const userId = sessao.session?.user?.id;
 
       const cadastro = userId
         ? await supabase
