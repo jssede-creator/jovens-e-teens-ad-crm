@@ -144,10 +144,10 @@ function EbdPainel() {
           <>
             <PillButton
               variante="outline"
-              onClick={() => navigate({ to: "/ebd/turmas" })}
+              onClick={() => navigate({ to: "/ebd/classes" })}
               className="h-9 rounded-full px-4 text-[13px]"
             >
-              <GraduationCap className="h-4 w-4" aria-hidden /> Ver turmas
+              <GraduationCap className="h-4 w-4" aria-hidden /> Ver classes
             </PillButton>
             <PillButton
               onClick={() => navigate({ to: "/ebd/cadastrar-aulas" })}
@@ -180,7 +180,7 @@ function EbdPainel() {
         />
         <StatCardTopo
           icone={GraduationCap}
-          rotulo="Turmas ativas"
+          rotulo="Classes ativas"
           valor={carregando ? "—" : String(d?.turmas ?? 0)}
           rodape={carregando ? undefined : `em ${d?.congregacoes ?? 0} congregação(ões)`}
         />
@@ -252,7 +252,7 @@ function EbdPainel() {
         </Bloco>
 
         <Bloco
-          titulo="Frequência por turma"
+          titulo="Frequência por classe"
           acao={
             <span className="flex items-center gap-3 text-xs text-jt-muted">
               <span className="flex items-center gap-1.5">
@@ -267,7 +267,7 @@ function EbdPainel() {
           {carregando ? (
             <VazioBloco>Carregando…</VazioBloco>
           ) : (d?.porTurma.length ?? 0) === 0 ? (
-            <VazioBloco>Nenhuma turma cadastrada.</VazioBloco>
+            <VazioBloco>Nenhuma classe cadastrada.</VazioBloco>
           ) : (
             <div className="flex h-56 items-end justify-around gap-6">
               {d?.porTurma.map((t) => (

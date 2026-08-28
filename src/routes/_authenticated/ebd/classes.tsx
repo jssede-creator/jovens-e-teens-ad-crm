@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Church, GraduationCap, Plus } from "lucide-react";
+import { Church, GraduationCap, Pencil, Plus } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 
 import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
@@ -45,19 +45,19 @@ import { idadeEm, iniciais } from "@/lib/ebd";
 import { mensagemErro } from "@/lib/formato";
 import { podeVer } from "@/lib/nav";
 
-export const Route = createFileRoute("/_authenticated/ebd/turmas")({
+export const Route = createFileRoute("/_authenticated/ebd/classes")({
   head: () => ({
     meta: [
-      { title: "Turmas da EBD — AD CRM | Jovens e Teens AD" },
-      { name: "description", content: "Turmas da EBD e seus matriculados." },
-      { property: "og:title", content: "Turmas da EBD — AD CRM" },
-      { property: "og:description", content: "Turmas da EBD e seus matriculados." },
+      { title: "Classes da EBD — AD CRM | Jovens e Teens AD" },
+      { name: "description", content: "Classes da EBD e seus matriculados." },
+      { property: "og:title", content: "Classes da EBD — AD CRM" },
+      { property: "og:description", content: "Classes da EBD e seus matriculados." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: EbdTurmas,
+  component: EbdClasses,
 });
 
 type Turma = {
@@ -93,6 +93,7 @@ function alternarNoSet<T>(conjunto: Set<T>, valor: T, marcado: boolean) {
 function TurmaDialog({
   aberto,
   onOpenChange,
+  editando,
   congregacoes,
   onSalvar,
   salvando,
@@ -100,6 +101,7 @@ function TurmaDialog({
 }: {
   aberto: boolean;
   onOpenChange: (v: boolean) => void;
+  editando: Turma | null;
   congregacoes: { id: string; nome: string }[];
   onSalvar: (form: Formulario) => void;
   salvando: boolean;
@@ -107,14 +109,22 @@ function TurmaDialog({
 }) {
   const [form, setForm] = useState<Formulario>(FORM_VAZIO);
   const [erros, setErros] = useState<Record<string, string>>({});
-  const [chaveAtual, setChaveAtual] = useState(false);
+  const [chaveAtual, setChaveAtual] = useState<string | null>(null);
 
-  if (aberto !== chaveAtual) {
-    setChaveAtual(aberto);
-    if (aberto) {
-      setForm(FORM_VAZIO);
-      setErros({});
-    }
+  const chave = aberto ? (editando?.id ?? "nova") : null;
+  if (chave !== chaveAtual) {
+    setChaveAtual(chave);
+    setErros({});
+    setForm(
+      editando
+        ? {
+            nome: editando.nome,
+            congregacao_id: editando.congregacaoId,
+            idade_min: String(editando.idadeMin),
+            idade_max: String(editando.idadeMax),
+          }
+        : FORM_VAZIO,
+    );
   }
 
   const campo = <K extends keyof Formulario>(nome: K, valor: Formulario[K]) => {
@@ -144,15 +154,15 @@ function TurmaDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-display">
             <GraduationCap className="h-5 w-5 text-jt-gold" aria-hidden />
-            Nova turma
+            {editando ? "Editar classe" : "Nova classe"}
           </DialogTitle>
           <DialogDescription className="text-jt-muted">
-            A faixa etária define quem pode ser matriculado nesta turma.
+            A faixa etária define quem pode ser matriculado nesta classe.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <Field label="Nome da turma" obrigatorio erro={erros["nome"] ?? ""}>
+          <Field label="Nome da classe" obrigatorio erro={erros["nome"] ?? ""}>
             <TextInput
               placeholder="Ex.: Campeões da Fé"
               value={form.nome}
@@ -191,7 +201,7 @@ function TurmaDialog({
             Cancelar
           </PillButton>
           <PillButton onClick={enviar} disabled={salvando}>
-            Cadastrar turma
+            {editando ? "Salvar alterações" : "Cadastrar classe"}
           </PillButton>
         </DialogFooter>
       </DialogContent>
@@ -242,7 +252,7 @@ function VerTurmaDialog({ turma, onFechar }: { turma: Turma | null; onFechar: ()
           <p className="py-8 text-center text-sm text-jt-muted">Carregando…</p>
         ) : (consulta.data?.length ?? 0) === 0 ? (
           <p className="py-8 text-center text-sm text-jt-muted">
-            Nenhum aluno matriculado nesta turma ainda.
+            Nenhum aluno matriculado nesta classe ainda.
           </p>
         ) : (
           <ul className="space-y-2">
@@ -271,7 +281,7 @@ function VerTurmaDialog({ turma, onFechar }: { turma: Turma | null; onFechar: ()
   );
 }
 
-function EbdTurmas() {
+function EbdClasses() {
   const queryClient = useQueryClient();
   const { data: acesso, isLoading: carregandoAcesso } = useAcesso();
   const pode = podeVer({ tipo: "modulo", modulo: "ebd" }, acesso);
@@ -289,6 +299,7 @@ function EbdTurmas() {
   const [pagina, setPagina] = useState(1);
   const [tamanhoPagina, setTamanhoPagina] = useState(10);
   const [novaTurma, setNovaTurma] = useState(false);
+  const [editando, setEditando] = useState<Turma | null>(null);
   const [verTurma, setVerTurma] = useState<Turma | null>(null);
   const [erroFormulario, setErroFormulario] = useState("");
 
@@ -332,6 +343,25 @@ function EbdTurmas() {
 
   const salvar = useMutation({
     mutationFn: async (form: Formulario) => {
+      const registro = {
+        nome: form.nome.trim(),
+        congregacao_id: form.congregacao_id,
+        idade_min: Number(form.idade_min),
+        idade_max: Number(form.idade_max),
+      };
+
+      if (editando) {
+        const { error } = await supabase.from("ebd_turmas").update(registro).eq("id", editando.id);
+        if (error) throw error;
+        await registrarAuditoria({
+          acao: "editou",
+          entidade: "ebd_turma",
+          entidadeId: editando.id,
+          detalhe: registro.nome,
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from("ebd_turmas")
         .insert({
@@ -352,6 +382,7 @@ function EbdTurmas() {
     },
     onSuccess: async () => {
       setNovaTurma(false);
+      setEditando(null);
       setErroFormulario("");
       await queryClient.invalidateQueries({ queryKey: ["ebd-turmas"] });
       await queryClient.invalidateQueries({ queryKey: ["ebd-painel"] });
@@ -422,13 +453,29 @@ function EbdTurmas() {
         <TableCell className="num text-jt-muted">{t.matriculados}</TableCell>
       ) : null}
       <TableCell>
-        <PillButton
-          variante="outline"
-          onClick={() => setVerTurma(t)}
-          className="h-8 rounded-full px-3 text-xs"
-        >
-          Visualizar turma
-        </PillButton>
+        <div className="flex items-center gap-1">
+          <PillButton
+            variante="outline"
+            onClick={() => setVerTurma(t)}
+            className="h-8 rounded-full px-3 text-xs"
+          >
+            Ver matriculados
+          </PillButton>
+          {podeGerenciar ? (
+            <button
+              type="button"
+              aria-label={`Editar ${t.nome}`}
+              onClick={() => {
+                setEditando(t);
+                setErroFormulario("");
+                setNovaTurma(true);
+              }}
+              className="grid h-7 w-7 place-items-center rounded-full text-jt-muted transition hover:bg-jt-panel-2 hover:text-jt-text"
+            >
+              <Pencil className="h-3.5 w-3.5" aria-hidden />
+            </button>
+          ) : null}
+        </div>
       </TableCell>
     </TableRow>
   );
@@ -436,7 +483,7 @@ function EbdTurmas() {
   if (carregandoAcesso) {
     return (
       <>
-        <PageHeader titulo="Turmas — EBD" />
+        <PageHeader titulo="Classes — EBD" />
         <Carregando />
       </>
     );
@@ -445,7 +492,7 @@ function EbdTurmas() {
   if (!pode) {
     return (
       <>
-        <PageHeader titulo="Turmas — EBD" />
+        <PageHeader titulo="Classes — EBD" />
         <SemPermissao mensagem="Sua conta não tem permissão de liderança para ver a EBD." />
       </>
     );
@@ -454,7 +501,7 @@ function EbdTurmas() {
   return (
     <>
       <PageHeader
-        titulo="Turmas — EBD"
+        titulo="Classes — EBD"
         contagem={
           <Badge variant="outline" className="num border-jt-line font-medium text-jt-muted">
             {filtradas.length} de {todas.length}
@@ -470,7 +517,7 @@ function EbdTurmas() {
               setBusca(v);
               setPagina(1);
             }}
-            placeholder="Buscar por turma, congregação…"
+            placeholder="Buscar por classe, congregação…"
           />
 
           <TableToolbarActions>
@@ -507,12 +554,13 @@ function EbdTurmas() {
             {podeGerenciar ? (
               <PillButton
                 onClick={() => {
+                  setEditando(null);
                   setErroFormulario("");
                   setNovaTurma(true);
                 }}
                 className="h-9 rounded-full px-4 text-[13px]"
               >
-                <Plus className="h-4 w-4" aria-hidden /> Nova turma
+                <Plus className="h-4 w-4" aria-hidden /> Nova classe
               </PillButton>
             ) : null}
           </TableToolbarActions>
@@ -523,7 +571,7 @@ function EbdTurmas() {
             <TableHeader>
               <TableRow className="border-jt-line hover:bg-transparent">
                 <SortableHead
-                  rotulo="Turma"
+                  rotulo="Classe"
                   chave="nome"
                   atual={ordem}
                   direcao={direcao}
@@ -559,10 +607,10 @@ function EbdTurmas() {
                 <EmptyRow colSpan={colSpan}>Carregando…</EmptyRow>
               ) : consulta.isError ? (
                 <EmptyRow colSpan={colSpan}>
-                  Não foi possível carregar as turmas. Tente novamente em instantes.
+                  Não foi possível carregar as classes. Tente novamente em instantes.
                 </EmptyRow>
               ) : filtradas.length === 0 ? (
-                <EmptyRow colSpan={colSpan}>Nenhuma turma corresponde aos filtros.</EmptyRow>
+                <EmptyRow colSpan={colSpan}>Nenhuma classe corresponde aos filtros.</EmptyRow>
               ) : agrupado ? (
                 grupos.map(([congregacao, doGrupo], i) => (
                   <Fragment key={congregacao}>
@@ -604,7 +652,11 @@ function EbdTurmas() {
 
       <TurmaDialog
         aberto={novaTurma}
-        onOpenChange={setNovaTurma}
+        onOpenChange={(v) => {
+          setNovaTurma(v);
+          if (!v) setEditando(null);
+        }}
+        editando={editando}
         congregacoes={congregacoes}
         onSalvar={(form) => salvar.mutate(form)}
         salvando={salvar.isPending}

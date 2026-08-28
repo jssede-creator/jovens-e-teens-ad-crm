@@ -128,7 +128,7 @@ export const navegacao: NavGrupo[] = [
       {
         rota: "/ebd",
         rotulo: "EBD",
-        descricao: "Turmas, aulas e frequência da Escola Bíblica Dominical.",
+        descricao: "Classes, aulas e frequência da Escola Bíblica Dominical.",
         icone: GraduationCap,
         permissao: modulo("ebd"),
         filhos: [
@@ -140,9 +140,9 @@ export const navegacao: NavGrupo[] = [
             permissao: modulo("ebd"),
           },
           {
-            rota: "/ebd/turmas",
-            rotulo: "Turmas",
-            descricao: "Turmas da EBD e seus matriculados.",
+            rota: "/ebd/classes",
+            rotulo: "Classes",
+            descricao: "Classes da EBD e seus matriculados.",
             icone: GraduationCap,
             permissao: modulo("ebd"),
           },

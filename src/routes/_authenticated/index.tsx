@@ -470,13 +470,13 @@ function BoasVindas({ onIniciar }: { onIniciar: () => void }) {
         </p>
         <PillButton onClick={onIniciar}>Iniciar cadastro</PillButton>
       </div>
-      <div className="overflow-hidden rounded-3xl shadow-[0_30px_70px_-30px_rgba(15,23,42,0.55)]">
+      <div className="mx-auto w-full max-w-[340px] self-center overflow-hidden rounded-3xl shadow-[0_30px_70px_-30px_rgba(15,23,42,0.55)]">
         <img
           src={ministerioFoto}
           alt="Jovens e adolescentes do ministério reunidos e sorrindo"
           width={1024}
           height={1280}
-          className="h-full w-full object-cover"
+          className="h-auto w-full object-cover"
         />
       </div>
     </div>

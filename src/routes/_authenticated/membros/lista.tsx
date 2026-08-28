@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Church, Download, Plus, Upload } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Church, Download, Plus, Upload, UserPlus } from "lucide-react";
 import { Fragment, useMemo, useRef, useState } from "react";
 
-import { PillButton } from "@/components/cadastro/ui";
+import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
+import { DataCampo, SelectCampo } from "@/components/crm/campos";
 import { AvatarIniciais, PageHeader } from "@/components/crm/pagina";
 import {
   ColumnsMenu,
@@ -174,6 +175,208 @@ function MembroRow({ linha, colunas }: { linha: Membro; colunas: Set<ColunaKey> 
   );
 }
 
+const FORM_MEMBRO = {
+  nome_completo: "",
+  data_nascimento: "",
+  cpf: "",
+  rg: "",
+  telefone: "",
+  email: "",
+  congregacao_id: "",
+  endereco: "",
+  numero: "",
+  cidade: "",
+  cep: "",
+};
+type FormMembro = typeof FORM_MEMBRO;
+
+function NovoMembroDialog({
+  aberto,
+  onOpenChange,
+  congregacoes,
+  onSalvar,
+  salvando,
+  erro,
+}: {
+  aberto: boolean;
+  onOpenChange: (v: boolean) => void;
+  congregacoes: { id: string; nome: string }[];
+  onSalvar: (form: FormMembro, lgpd: boolean) => void;
+  salvando: boolean;
+  erro: string;
+}) {
+  const [form, setForm] = useState<FormMembro>(FORM_MEMBRO);
+  const [lgpd, setLgpd] = useState(false);
+  const [erros, setErros] = useState<Record<string, string>>({});
+  const [chaveAtual, setChaveAtual] = useState(false);
+
+  if (aberto !== chaveAtual) {
+    setChaveAtual(aberto);
+    if (aberto) {
+      setForm(FORM_MEMBRO);
+      setErros({});
+      setLgpd(false);
+    }
+  }
+
+  const campo = <K extends keyof FormMembro>(nome: K, valor: FormMembro[K]) => {
+    setForm((atual) => ({ ...atual, [nome]: valor }));
+    setErros((atual) => ({ ...atual, [nome]: "" }));
+  };
+
+  function enviar() {
+    const novos: Record<string, string> = {};
+    const obrigatorios: (keyof FormMembro)[] = [
+      "nome_completo",
+      "data_nascimento",
+      "cpf",
+      "rg",
+      "telefone",
+      "email",
+      "endereco",
+      "cidade",
+      "cep",
+    ];
+    for (const c of obrigatorios) if (!form[c].trim()) novos[c] = "Campo obrigatório.";
+    if (!novos["cep"] && semMascara(form.cep).length < 8) novos["cep"] = "Informe o CEP completo.";
+    if (!novos["email"] && !form.email.includes("@")) novos["email"] = "E-mail inválido.";
+    setErros(novos);
+    if (Object.keys(novos).length > 0) return;
+    onSalvar(form, lgpd);
+  }
+
+  return (
+    <Dialog open={aberto} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden border-jt-line bg-jt-panel text-jt-text sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 font-display">
+            <UserPlus className="h-5 w-5 text-jt-gold" aria-hidden />
+            Novo membro
+          </DialogTitle>
+          <DialogDescription className="text-jt-muted">
+            O cadastro entra completo na lista; a pessoa pode complementar depois com os dados
+            socioeconômicos.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+          <Field label="Nome completo" obrigatorio erro={erros["nome_completo"] ?? ""}>
+            <TextInput
+              value={form.nome_completo}
+              onValueChange={(v) => campo("nome_completo", v)}
+              placeholder="Ex.: Maria de Souza"
+            />
+          </Field>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Nascimento" obrigatorio erro={erros["data_nascimento"] ?? ""}>
+              <DataCampo
+                valor={form.data_nascimento}
+                onValueChange={(v) => campo("data_nascimento", v)}
+                placeholder="Escolha a data"
+              />
+            </Field>
+            <Field label="Congregação">
+              <SelectCampo
+                opcoes={congregacoes.map((c) => ({ valor: c.id, rotulo: c.nome }))}
+                valor={form.congregacao_id}
+                onValueChange={(v) => campo("congregacao_id", v)}
+                placeholder="Selecione"
+              />
+            </Field>
+            <Field label="CPF" obrigatorio erro={erros["cpf"] ?? ""}>
+              <TextInput
+                mascara="cpf"
+                value={form.cpf}
+                onValueChange={(v) => campo("cpf", v)}
+                inputMode="numeric"
+              />
+            </Field>
+            <Field label="RG" obrigatorio erro={erros["rg"] ?? ""}>
+              <TextInput
+                mascara="rg"
+                value={form.rg}
+                onValueChange={(v) => campo("rg", v)}
+                inputMode="numeric"
+              />
+            </Field>
+            <Field label="Telefone" obrigatorio erro={erros["telefone"] ?? ""}>
+              <TextInput
+                mascara="telefone"
+                value={form.telefone}
+                onValueChange={(v) => campo("telefone", v)}
+                inputMode="numeric"
+              />
+            </Field>
+            <Field label="E-mail" obrigatorio erro={erros["email"] ?? ""}>
+              <TextInput
+                type="email"
+                value={form.email}
+                onValueChange={(v) => campo("email", v)}
+                placeholder="nome@email.com"
+              />
+            </Field>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Endereço" obrigatorio erro={erros["endereco"] ?? ""}>
+              <TextInput value={form.endereco} onValueChange={(v) => campo("endereco", v)} />
+            </Field>
+            <Field label="Número">
+              <TextInput
+                value={form.numero}
+                onValueChange={(v) => campo("numero", v)}
+                inputMode="numeric"
+              />
+            </Field>
+            <Field label="Cidade" obrigatorio erro={erros["cidade"] ?? ""}>
+              <TextInput value={form.cidade} onValueChange={(v) => campo("cidade", v)} />
+            </Field>
+            <Field label="CEP" obrigatorio erro={erros["cep"] ?? ""}>
+              <TextInput
+                mascara="cep"
+                value={form.cep}
+                onValueChange={(v) => campo("cep", v)}
+                inputMode="numeric"
+                placeholder="00000-000"
+              />
+            </Field>
+          </div>
+
+          <label
+            className={cn(
+              "flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-xs transition",
+              lgpd ? "border-jt-success/50 bg-green-50/50 dark:bg-green-950/20" : "border-jt-line",
+            )}
+          >
+            <input
+              type="checkbox"
+              checked={lgpd}
+              onChange={(e) => setLgpd(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span className="text-jt-muted">
+              <span className="block font-medium text-jt-text">Aceite da LGPD</span>
+              Confirmo que essa pessoa autorizou o uso dos dados pelo ministério.
+            </span>
+          </label>
+
+          {erro ? <p className="text-xs text-jt-coral">{erro}</p> : null}
+        </div>
+
+        <DialogFooter>
+          <PillButton variante="ghost" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </PillButton>
+          <PillButton onClick={enviar} disabled={salvando || !lgpd}>
+            {salvando ? "Salvando…" : "Cadastrar membro"}
+          </PillButton>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function ImportarDialog({
   aberto,
   onOpenChange,
@@ -334,7 +537,6 @@ function ImportarDialog({
 }
 
 function MembrosLista() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: acesso, isLoading: carregandoAcesso } = useAcesso();
   const pode = podeVer({ tipo: "modulo", modulo: "membros" }, acesso);
@@ -353,6 +555,8 @@ function MembrosLista() {
   const [pagina, setPagina] = useState(1);
   const [tamanhoPagina, setTamanhoPagina] = useState(10);
   const [importar, setImportar] = useState(false);
+  const [novoMembro, setNovoMembro] = useState(false);
+  const [erroNovo, setErroNovo] = useState("");
   const [resultadoImport, setResultadoImport] = useState("");
 
   const consulta = useQuery({
@@ -390,6 +594,48 @@ function MembrosLista() {
 
   const todos = useMemo(() => consulta.data?.linhas ?? [], [consulta.data]);
   const congregacoes = consulta.data?.congregacoes ?? [];
+
+  const criarMembro = useMutation({
+    mutationFn: async ({ form, lgpd }: { form: FormMembro; lgpd: boolean }) => {
+      if (!lgpd) throw new Error("lgpd");
+      const { data, error } = await supabase
+        .from("cadastros")
+        .insert({
+          user_id: null,
+          nome_completo: form.nome_completo.trim(),
+          data_nascimento: form.data_nascimento,
+          cpf: form.cpf,
+          rg: form.rg,
+          telefone: form.telefone,
+          email: form.email.trim().toLowerCase(),
+          congregacao_id: form.congregacao_id || null,
+          endereco: form.endereco.trim(),
+          numero: form.numero.trim() || null,
+          cidade: form.cidade.trim(),
+          cep: form.cep,
+          compartilhou_dados_complementares: false,
+          lgpd_aceito: true,
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      await registrarAuditoria({
+        acao: "criou",
+        entidade: "cadastro",
+        entidadeId: data.id,
+        detalhe: form.nome_completo.trim(),
+      });
+    },
+    onSuccess: async () => {
+      setNovoMembro(false);
+      setErroNovo("");
+      await queryClient.invalidateQueries({ queryKey: ["membros-lista"] });
+      await queryClient.invalidateQueries({ queryKey: ["membros-painel"] });
+      await queryClient.invalidateQueries({ queryKey: ["congregacoes-lista"] });
+    },
+    onError: (e) =>
+      setErroNovo((e as Error).message === "lgpd" ? "Confirme o aceite da LGPD." : mensagemErro(e)),
+  });
 
   const importacao = useMutation({
     mutationFn: async ({ texto, lgpd }: { texto: string; lgpd: boolean }) => {
@@ -661,7 +907,10 @@ function MembrosLista() {
                   <Upload className="h-4 w-4" aria-hidden /> Incluir membros
                 </PillButton>
                 <PillButton
-                  onClick={() => navigate({ to: "/" })}
+                  onClick={() => {
+                    setErroNovo("");
+                    setNovoMembro(true);
+                  }}
                   className="h-9 rounded-full px-4 text-[13px]"
                 >
                   <Plus className="h-4 w-4" aria-hidden /> Novo
@@ -780,6 +1029,15 @@ function MembrosLista() {
           unidade="registros"
         />
       </TableShell>
+
+      <NovoMembroDialog
+        aberto={novoMembro}
+        onOpenChange={setNovoMembro}
+        congregacoes={congregacoes}
+        onSalvar={(form, lgpd) => criarMembro.mutate({ form, lgpd })}
+        salvando={criarMembro.isPending}
+        erro={erroNovo}
+      />
 
       <ImportarDialog
         aberto={importar}

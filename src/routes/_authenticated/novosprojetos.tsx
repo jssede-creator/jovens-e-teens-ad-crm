@@ -1,12 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { KanbanSquare, Plus, Search, Trash2 } from "lucide-react";
+import { GripVertical, KanbanSquare, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Field, PillButton, TextInput } from "@/components/cadastro/ui";
 import { DataCampo, SelectCampo } from "@/components/crm/campos";
 import { PageHeader } from "@/components/crm/pagina";
 import { Carregando, SemPermissao } from "@/components/sem-permissao";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -198,6 +204,8 @@ function NovosProjetos() {
   const [editando, setEditando] = useState<Projeto | null>(null);
   const [statusInicial, setStatusInicial] = useState<Status>("ideias");
   const [erro, setErro] = useState("");
+  const [arrastando, setArrastando] = useState<string | null>(null);
+  const [alvo, setAlvo] = useState<Status | null>(null);
 
   const consulta = useQuery({
     queryKey: ["projetos"],
@@ -323,7 +331,7 @@ function NovosProjetos() {
     <>
       <PageHeader
         titulo="Novos projetos"
-        descricao={`${projetos.length} projeto(s) da ideia até a entrega.`}
+        descricao={`${projetos.length} projeto(s) da ideia até a entrega. Arraste um cartão para mudar de coluna.`}
         acoes={
           <div className="flex flex-col items-end gap-2">
             <div className="relative w-full max-w-xs">
@@ -359,7 +367,28 @@ function NovosProjetos() {
           return (
             <section
               key={coluna.chave}
-              className="rounded-[20px] border border-jt-line bg-jt-panel p-3"
+              onDragOver={(e) => {
+                if (!podeGerenciar || !arrastando) return;
+                e.preventDefault();
+                setAlvo(coluna.chave);
+              }}
+              onDragLeave={() => setAlvo((atual) => (atual === coluna.chave ? null : atual))}
+              onDrop={(e) => {
+                e.preventDefault();
+                const id = e.dataTransfer.getData("text/plain") || arrastando;
+                setAlvo(null);
+                setArrastando(null);
+                if (!id || !podeGerenciar) return;
+                const atual = projetos.find((p) => p.id === id);
+                if (!atual || atual.status === coluna.chave) return;
+                mover.mutate({ id, status: coluna.chave });
+              }}
+              className={cn(
+                "rounded-[20px] border bg-jt-panel p-3 transition",
+                alvo === coluna.chave && arrastando
+                  ? "border-jt-gold bg-jt-panel-2"
+                  : "border-jt-line",
+              )}
             >
               <header className="mb-3 flex items-center gap-2 px-1">
                 <span className={cn("h-2 w-2 rounded-full", coluna.ponto)} />
@@ -390,7 +419,21 @@ function NovosProjetos() {
                   {daColuna.map((p) => (
                     <li
                       key={p.id}
-                      className="rounded-xl border border-jt-line bg-jt-panel-2 p-3 transition hover:border-jt-gold/40"
+                      draggable={podeGerenciar}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("text/plain", p.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        setArrastando(p.id);
+                      }}
+                      onDragEnd={() => {
+                        setArrastando(null);
+                        setAlvo(null);
+                      }}
+                      className={cn(
+                        "rounded-xl border border-jt-line bg-jt-panel-2 p-3 transition hover:border-jt-gold/40",
+                        podeGerenciar && "cursor-grab active:cursor-grabbing",
+                        arrastando === p.id && "opacity-50",
+                      )}
                     >
                       <div className="flex items-start gap-2">
                         <button
@@ -403,7 +446,9 @@ function NovosProjetos() {
                           }}
                           className="min-w-0 flex-1 text-left"
                         >
-                          <p className="truncate text-sm font-medium text-jt-text">{p.titulo}</p>
+                          <p className="text-sm font-medium leading-snug text-jt-text">
+                            {p.titulo}
+                          </p>
                           {p.descricao ? (
                             <p className="mt-0.5 line-clamp-2 text-xs text-jt-muted">
                               {p.descricao}
@@ -428,22 +473,28 @@ function NovosProjetos() {
                       </div>
 
                       {podeGerenciar ? (
-                        <label className="mt-2 block">
-                          <span className="sr-only">Mover {p.titulo}</span>
-                          <select
-                            value={p.status}
-                            onChange={(e) =>
-                              mover.mutate({ id: p.id, status: e.target.value as Status })
-                            }
-                            className="h-8 w-full rounded-md border border-jt-line bg-jt-panel px-2 text-xs text-jt-muted outline-none transition hover:text-jt-text focus:ring-2 focus:ring-jt-blue/30"
-                          >
-                            {COLUNAS.map((c) => (
-                              <option key={c.chave} value={c.chave}>
-                                {c.rotulo}
-                              </option>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-jt-line px-2.5 py-1 text-[11px] text-jt-muted transition hover:bg-jt-panel hover:text-jt-text"
+                            >
+                              <GripVertical className="h-3 w-3" aria-hidden />
+                              Mover
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="border-jt-line bg-jt-panel">
+                            {COLUNAS.filter((cc) => cc.chave !== p.status).map((cc) => (
+                              <DropdownMenuItem
+                                key={cc.chave}
+                                onClick={() => mover.mutate({ id: p.id, status: cc.chave })}
+                              >
+                                <span className={cn("mr-2 h-2 w-2 rounded-full", cc.ponto)} />
+                                {cc.rotulo}
+                              </DropdownMenuItem>
                             ))}
-                          </select>
-                        </label>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       ) : null}
                     </li>
                   ))}
