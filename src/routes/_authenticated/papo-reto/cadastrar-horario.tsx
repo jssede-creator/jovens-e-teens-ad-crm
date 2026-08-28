@@ -11,6 +11,7 @@ import { Carregando, SemPermissao } from "@/components/sem-permissao";
 import { Badge } from "@/components/ui/badge";
 import { useAcesso } from "@/hooks/use-acesso";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { hojeISO } from "@/lib/ebd";
 import { dataParaBR, hora, mensagemErro } from "@/lib/formato";
@@ -34,6 +35,8 @@ export const Route = createFileRoute("/_authenticated/papo-reto/cadastrar-horari
 });
 
 type Aba = "proximos" | "passados" | "todos";
+
+type NovoHorario = Database["public"]["Tables"]["papo_reto_horarios"]["Insert"];
 
 /** Fim de uma janela de 30 minutos. */
 function meiaHoraDepois(inicio: string) {
@@ -60,6 +63,7 @@ function CadastrarHorario() {
     queryFn: carregarPapoReto,
   });
 
+  const temLocal = consulta.data?.temLocal ?? false;
   const horarios = useMemo(() => consulta.data?.horarios ?? [], [consulta.data]);
   const agendamentos = useMemo(() => consulta.data?.agendamentos ?? [], [consulta.data]);
   const livres = horariosLivres(horarios, agendamentos);
@@ -79,9 +83,13 @@ function CadastrarHorario() {
         data: dia,
         hora_inicio: inicio,
         hora_fim: meiaHoraDepois(inicio),
-        ...(local ? { local } : {}),
+        ...(temLocal && local ? { local } : {}),
       }));
-      const { error } = await supabase.from("papo_reto_horarios").insert(registros);
+      // O cast cobre a coluna `local`, que os tipos gerados só conhecem depois
+      // que a migração roda e o Lovable regenera o types.ts.
+      const { error } = await supabase
+        .from("papo_reto_horarios")
+        .insert(registros as unknown as NovoHorario[]);
       if (error) throw error;
       await registrarAuditoria({
         acao: "abriu",
@@ -207,14 +215,16 @@ function CadastrarHorario() {
               />
             </Field>
 
-            <Field label="Local">
-              <SelectCampo
-                opcoes={LOCAIS_PAPO.map((l) => ({ valor: l, rotulo: l }))}
-                valor={local}
-                onValueChange={setLocal}
-                placeholder="Selecione"
-              />
-            </Field>
+            {temLocal ? (
+              <Field label="Local">
+                <SelectCampo
+                  opcoes={LOCAIS_PAPO.map((l) => ({ valor: l, rotulo: l }))}
+                  valor={local}
+                  onValueChange={setLocal}
+                  placeholder="Selecione"
+                />
+              </Field>
+            ) : null}
 
             <div>
               <p className="mb-1.5 block text-sm font-medium text-jt-text">Horários</p>

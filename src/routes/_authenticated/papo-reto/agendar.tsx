@@ -8,12 +8,19 @@ import { Bloco, PageHeader, VazioBloco } from "@/components/crm/pagina";
 import { Carregando, SemPermissao } from "@/components/sem-permissao";
 import { useAcesso } from "@/hooks/use-acesso";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { hojeISO } from "@/lib/ebd";
 import { dataParaBR, hora, mensagemErro } from "@/lib/formato";
 import { podeVer } from "@/lib/nav";
 import { carregarPapoReto, horariosLivres, type Horario } from "@/lib/papo";
 import { cn } from "@/lib/utils";
+
+/**
+ * A coluna `local` entra nos tipos gerados só depois que a migração roda e o
+ * Lovable regenera o types.ts; até lá o payload passa por um cast explícito.
+ */
+type NovoAgendamento = Database["public"]["Tables"]["papo_reto_agendamentos"]["Insert"];
 
 export const Route = createFileRoute("/_authenticated/papo-reto/agendar")({
   head: () => ({
@@ -78,20 +85,22 @@ function PapoRetoAgendar() {
   const agendar = useMutation({
     mutationFn: async () => {
       if (!escolhido || !conta) throw new Error("horario");
+      const registro = {
+        user_id: conta.id,
+        solicitante_nome: conta.nome,
+        solicitante_email: conta.email,
+        horario_id: escolhido.id,
+        data: escolhido.data,
+        hora_inicio: escolhido.hora_inicio,
+        hora_fim: escolhido.hora_fim,
+        ...(escolhido.local ? { local: escolhido.local } : {}),
+        assunto: assunto.trim(),
+        mensagem: observacao.trim() || null,
+      } as unknown as NovoAgendamento;
+
       const { data, error } = await supabase
         .from("papo_reto_agendamentos")
-        .insert({
-          user_id: conta.id,
-          solicitante_nome: conta.nome,
-          solicitante_email: conta.email,
-          horario_id: escolhido.id,
-          data: escolhido.data,
-          hora_inicio: escolhido.hora_inicio,
-          hora_fim: escolhido.hora_fim,
-          ...(escolhido.local ? { local: escolhido.local } : {}),
-          assunto: assunto.trim(),
-          mensagem: observacao.trim() || null,
-        })
+        .insert(registro)
         .select("id")
         .single();
       if (error) throw error;

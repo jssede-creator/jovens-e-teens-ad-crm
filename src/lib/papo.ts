@@ -70,6 +70,11 @@ export type Agendamento = {
  * não existir no banco, o campo volta indefinido em vez de derrubar a consulta.
  */
 export async function carregarPapoReto() {
+  // A coluna `local` só existe depois da migração 20260828160000. Enquanto o
+  // banco não a tiver, as telas escondem o campo em vez de quebrar no insert.
+  const sonda = await supabase.from("papo_reto_horarios").select("local").limit(1);
+  const temLocal = !sonda.error;
+
   const [horarios, agendamentos] = await Promise.all([
     supabase.from("papo_reto_horarios").select("*").order("data").order("hora_inicio"),
     supabase.from("papo_reto_agendamentos").select("*").order("data", { ascending: false }),
@@ -78,6 +83,7 @@ export async function carregarPapoReto() {
   if (agendamentos.error) throw agendamentos.error;
 
   return {
+    temLocal,
     horarios: (horarios.data ?? []).map((h) => ({
       ...h,
       local: (h as { local?: string | null }).local ?? null,
