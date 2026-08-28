@@ -14,6 +14,8 @@ export const MODULOS: { chave: ModuleKey; rotulo: string; grupo: string }[] = [
   { chave: "papo_reto_gerenciar", rotulo: "Responder papo reto", grupo: "Papo reto" },
   { chave: "projetos", rotulo: "Ver projetos", grupo: "Projetos" },
   { chave: "projetos_gerenciar", rotulo: "Gerenciar projetos", grupo: "Projetos" },
+  { chave: "eventos", rotulo: "Ver eventos e reservar vaga", grupo: "Eventos" },
+  { chave: "eventos_gerenciar", rotulo: "Criar e gerenciar eventos", grupo: "Eventos" },
   { chave: "arquivos", rotulo: "Ver arquivos", grupo: "Arquivos" },
   { chave: "arquivos_gerenciar", rotulo: "Enviar e excluir arquivos", grupo: "Arquivos" },
   { chave: "suporte", rotulo: "Ver suporte e histórico", grupo: "Sistema" },

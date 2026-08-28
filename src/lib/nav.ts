@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  CalendarHeart,
   ClipboardCheck,
   Church,
   FolderClosed,
@@ -33,6 +34,8 @@ export type ModuleKey =
   | "papo_reto_gerenciar"
   | "projetos"
   | "projetos_gerenciar"
+  | "eventos"
+  | "eventos_gerenciar"
   | "arquivos"
   | "arquivos_gerenciar"
   | "suporte"
@@ -168,6 +171,29 @@ export const navegacao: NavGrupo[] = [
         descricao: "Quadro dos projetos do ministério, da ideia à entrega.",
         icone: KanbanSquare,
         permissao: modulo("projetos"),
+      },
+      {
+        rota: "/eventos",
+        rotulo: "Eventos",
+        descricao: "Encontros, cultos e retiros do ministério, com reserva de vaga.",
+        icone: CalendarHeart,
+        permissao: modulo("eventos"),
+        filhos: [
+          {
+            rota: "/eventos/painel",
+            rotulo: "Painel",
+            descricao: "Próximos eventos e as vagas que você reservou.",
+            icone: CalendarHeart,
+            permissao: modulo("eventos"),
+          },
+          {
+            rota: "/eventos/lista",
+            rotulo: "Lista",
+            descricao: "Todos os eventos, com inscritos e criação de evento.",
+            icone: CalendarHeart,
+            permissao: modulo("eventos"),
+          },
+        ],
       },
       {
         rota: "/arquivos",

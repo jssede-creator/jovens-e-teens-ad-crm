@@ -1,14 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarClock, ClipboardCheck, MessageCircle, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { PillButton } from "@/components/cadastro/ui";
+import { EventoCard } from "@/components/crm/evento-card";
 import { Bloco } from "@/components/crm/pagina";
 import { useAcesso } from "@/hooks/use-acesso";
 import { supabase } from "@/integrations/supabase/client";
+import { registrarAuditoria } from "@/lib/auditoria";
 import { hojeISO } from "@/lib/ebd";
-import { dataParaBR, hora } from "@/lib/formato";
+import { carregarEventos, type Evento } from "@/lib/eventos";
+import { dataParaBR, hora, mensagemErro } from "@/lib/formato";
 import { itensVisiveis, navegacao, podeVer } from "@/lib/nav";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
@@ -56,6 +59,7 @@ function CartaoResumo({
 }
 
 function MenuInicial() {
+  const queryClient = useQueryClient();
   const { data: acesso } = useAcesso();
   const [nome, setNome] = useState("");
 
@@ -66,6 +70,55 @@ function MenuInicial() {
   }, []);
 
   const vePapo = podeVer({ tipo: "modulo", modulo: "papo_reto" }, acesso);
+  const veEventos = podeVer({ tipo: "modulo", modulo: "eventos" }, acesso);
+  const [conta, setConta] = useState<{ id: string; nome: string; email: string } | null>(null);
+  const [erroEvento, setErroEvento] = useState("");
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const user = data.session?.user;
+      if (!user) return;
+      setConta({
+        id: user.id,
+        nome: (user.user_metadata?.["nome"] as string | undefined) ?? user.email ?? "—",
+        email: user.email ?? "",
+      });
+    });
+  }, []);
+
+  const eventos = useQuery({
+    queryKey: ["eventos", conta?.id ?? null],
+    enabled: veEventos && conta !== null,
+    queryFn: () => carregarEventos(conta?.id ?? null),
+  });
+
+  const proximosEventos = (eventos.data ?? [])
+    .filter((e) => e.data >= hojeISO() && e.status === "aberto")
+    .slice(0, 3);
+
+  const reservar = useMutation({
+    mutationFn: async (evento: Evento) => {
+      if (!conta) throw new Error("sessao");
+      const { error } = await supabase.from("evento_inscricoes").insert({
+        evento_id: evento.id,
+        user_id: conta.id,
+        nome: conta.nome,
+        email: conta.email,
+      });
+      if (error) throw error;
+      await registrarAuditoria({
+        acao: "reservou",
+        entidade: "evento",
+        entidadeId: evento.id,
+        detalhe: evento.titulo,
+      });
+    },
+    onSuccess: async () => {
+      setErroEvento("");
+      await queryClient.invalidateQueries({ queryKey: ["eventos"] });
+    },
+    onError: (e) => setErroEvento(mensagemErro(e)),
+  });
 
   const resumo = useQuery({
     queryKey: ["inicio", vePapo],
@@ -194,6 +247,39 @@ function MenuInicial() {
           />
         </div>
       </div>
+
+      {veEventos ? (
+        <section>
+          <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="font-display text-base font-semibold text-jt-text">Próximos eventos</h2>
+            <Link to="/eventos/painel" className="text-xs font-medium text-jt-blue hover:underline">
+              Ver todos →
+            </Link>
+          </div>
+
+          {eventos.isLoading ? (
+            <p className="rounded-[20px] border border-jt-line bg-jt-panel px-6 py-10 text-center text-sm text-jt-muted">
+              Carregando…
+            </p>
+          ) : proximosEventos.length === 0 ? (
+            <p className="rounded-[20px] border border-jt-line bg-jt-panel px-6 py-10 text-center text-sm text-jt-muted">
+              Nenhum evento marcado por enquanto.
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {proximosEventos.map((e) => (
+                <EventoCard
+                  key={e.id}
+                  evento={e}
+                  ocupado={reservar.isPending}
+                  onReservar={(alvo) => reservar.mutate(alvo)}
+                />
+              ))}
+            </div>
+          )}
+          {erroEvento ? <p className="mt-2 text-xs text-jt-coral">{erroEvento}</p> : null}
+        </section>
+      ) : null}
 
       <section>
         <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-2">

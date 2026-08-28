@@ -72,6 +72,9 @@ export function mensagemErro(erro: unknown): string {
   const e = erro as { code?: string; message?: string } | null;
   const msg = e?.message ?? "";
   if (!e) return "Não foi possível concluir a operação. Tente novamente.";
+  if (e.code === "PGRST205" || /could not find the table/i.test(msg)) {
+    return "Esta área ainda não existe no banco. Peça para aplicar as migrações pendentes de supabase/migrations.";
+  }
   // Armazenamento (Supabase Storage).
   if (e.code === "NoSuchBucket" || /bucket not found/i.test(msg)) {
     return "O espaço de arquivos ainda não foi criado no banco. Peça para aplicar as migrações pendentes de supabase/migrations.";

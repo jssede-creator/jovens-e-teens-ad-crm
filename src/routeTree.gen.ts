@@ -25,6 +25,9 @@ import { Route as AuthenticatedCongregacoesPainelRouteImport } from './routes/_a
 import { Route as AuthenticatedEbdIndexRouteImport } from './routes/_authenticated/ebd/index'
 import { Route as AuthenticatedEbdCadastrarAulasRouteImport } from './routes/_authenticated/ebd/cadastrar-aulas'
 import { Route as AuthenticatedEbdPainelRouteImport } from './routes/_authenticated/ebd/painel'
+import { Route as AuthenticatedEventosIndexRouteImport } from './routes/_authenticated/eventos/index'
+import { Route as AuthenticatedEventosListaRouteImport } from './routes/_authenticated/eventos/lista'
+import { Route as AuthenticatedEventosPainelRouteImport } from './routes/_authenticated/eventos/painel'
 import { Route as AuthenticatedMembrosIndexRouteImport } from './routes/_authenticated/membros/index'
 import { Route as AuthenticatedMembrosListaRouteImport } from './routes/_authenticated/membros/lista'
 import { Route as AuthenticatedMembrosPainelRouteImport } from './routes/_authenticated/membros/painel'
@@ -129,6 +132,24 @@ const AuthenticatedEbdPainelRoute = AuthenticatedEbdPainelRouteImport.update({
   path: '/ebd/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEventosIndexRoute =
+  AuthenticatedEventosIndexRouteImport.update({
+    id: '/eventos/',
+    path: '/eventos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEventosListaRoute =
+  AuthenticatedEventosListaRouteImport.update({
+    id: '/eventos/lista',
+    path: '/eventos/lista',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEventosPainelRoute =
+  AuthenticatedEventosPainelRouteImport.update({
+    id: '/eventos/painel',
+    path: '/eventos/painel',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMembrosIndexRoute =
   AuthenticatedMembrosIndexRouteImport.update({
     id: '/membros/',
@@ -239,6 +260,8 @@ export interface FileRoutesByFullPath {
   '/congregacoes/painel': typeof AuthenticatedCongregacoesPainelRoute
   '/ebd/cadastrar-aulas': typeof AuthenticatedEbdCadastrarAulasRoute
   '/ebd/painel': typeof AuthenticatedEbdPainelRoute
+  '/eventos/lista': typeof AuthenticatedEventosListaRoute
+  '/eventos/painel': typeof AuthenticatedEventosPainelRoute
   '/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/membros/painel': typeof AuthenticatedMembrosPainelRoute
   '/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
@@ -252,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes/': typeof AuthenticatedConfiguracoesIndexRoute
   '/congregacoes/': typeof AuthenticatedCongregacoesIndexRoute
   '/ebd/': typeof AuthenticatedEbdIndexRoute
+  '/eventos/': typeof AuthenticatedEventosIndexRoute
   '/membros/': typeof AuthenticatedMembrosIndexRoute
   '/papo-reto/': typeof AuthenticatedPapoRetoIndexRoute
   '/perfil/': typeof AuthenticatedPerfilIndexRoute
@@ -272,6 +296,8 @@ export interface FileRoutesByTo {
   '/congregacoes/painel': typeof AuthenticatedCongregacoesPainelRoute
   '/ebd/cadastrar-aulas': typeof AuthenticatedEbdCadastrarAulasRoute
   '/ebd/painel': typeof AuthenticatedEbdPainelRoute
+  '/eventos/lista': typeof AuthenticatedEventosListaRoute
+  '/eventos/painel': typeof AuthenticatedEventosPainelRoute
   '/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/membros/painel': typeof AuthenticatedMembrosPainelRoute
   '/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
@@ -285,6 +311,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof AuthenticatedConfiguracoesIndexRoute
   '/congregacoes': typeof AuthenticatedCongregacoesIndexRoute
   '/ebd': typeof AuthenticatedEbdIndexRoute
+  '/eventos': typeof AuthenticatedEventosIndexRoute
   '/membros': typeof AuthenticatedMembrosIndexRoute
   '/papo-reto': typeof AuthenticatedPapoRetoIndexRoute
   '/perfil': typeof AuthenticatedPerfilIndexRoute
@@ -307,6 +334,8 @@ export interface FileRoutesById {
   '/_authenticated/congregacoes/painel': typeof AuthenticatedCongregacoesPainelRoute
   '/_authenticated/ebd/cadastrar-aulas': typeof AuthenticatedEbdCadastrarAulasRoute
   '/_authenticated/ebd/painel': typeof AuthenticatedEbdPainelRoute
+  '/_authenticated/eventos/lista': typeof AuthenticatedEventosListaRoute
+  '/_authenticated/eventos/painel': typeof AuthenticatedEventosPainelRoute
   '/_authenticated/membros/lista': typeof AuthenticatedMembrosListaRoute
   '/_authenticated/membros/painel': typeof AuthenticatedMembrosPainelRoute
   '/_authenticated/papo-reto/agendar': typeof AuthenticatedPapoRetoAgendarRoute
@@ -320,6 +349,7 @@ export interface FileRoutesById {
   '/_authenticated/configuracoes/': typeof AuthenticatedConfiguracoesIndexRoute
   '/_authenticated/congregacoes/': typeof AuthenticatedCongregacoesIndexRoute
   '/_authenticated/ebd/': typeof AuthenticatedEbdIndexRoute
+  '/_authenticated/eventos/': typeof AuthenticatedEventosIndexRoute
   '/_authenticated/membros/': typeof AuthenticatedMembrosIndexRoute
   '/_authenticated/papo-reto/': typeof AuthenticatedPapoRetoIndexRoute
   '/_authenticated/perfil/': typeof AuthenticatedPerfilIndexRoute
@@ -342,6 +372,8 @@ export interface FileRouteTypes {
     | '/congregacoes/painel'
     | '/ebd/cadastrar-aulas'
     | '/ebd/painel'
+    | '/eventos/lista'
+    | '/eventos/painel'
     | '/membros/lista'
     | '/membros/painel'
     | '/papo-reto/agendar'
@@ -355,6 +387,7 @@ export interface FileRouteTypes {
     | '/configuracoes/'
     | '/congregacoes/'
     | '/ebd/'
+    | '/eventos/'
     | '/membros/'
     | '/papo-reto/'
     | '/perfil/'
@@ -375,6 +408,8 @@ export interface FileRouteTypes {
     | '/congregacoes/painel'
     | '/ebd/cadastrar-aulas'
     | '/ebd/painel'
+    | '/eventos/lista'
+    | '/eventos/painel'
     | '/membros/lista'
     | '/membros/painel'
     | '/papo-reto/agendar'
@@ -388,6 +423,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/congregacoes'
     | '/ebd'
+    | '/eventos'
     | '/membros'
     | '/papo-reto'
     | '/perfil'
@@ -409,6 +445,8 @@ export interface FileRouteTypes {
     | '/_authenticated/congregacoes/painel'
     | '/_authenticated/ebd/cadastrar-aulas'
     | '/_authenticated/ebd/painel'
+    | '/_authenticated/eventos/lista'
+    | '/_authenticated/eventos/painel'
     | '/_authenticated/membros/lista'
     | '/_authenticated/membros/painel'
     | '/_authenticated/papo-reto/agendar'
@@ -422,6 +460,7 @@ export interface FileRouteTypes {
     | '/_authenticated/configuracoes/'
     | '/_authenticated/congregacoes/'
     | '/_authenticated/ebd/'
+    | '/_authenticated/eventos/'
     | '/_authenticated/membros/'
     | '/_authenticated/papo-reto/'
     | '/_authenticated/perfil/'
@@ -547,6 +586,27 @@ declare module '@tanstack/react-router' {
       path: '/ebd/painel'
       fullPath: '/ebd/painel'
       preLoaderRoute: typeof AuthenticatedEbdPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/eventos/': {
+      id: '/_authenticated/eventos/'
+      path: '/eventos'
+      fullPath: '/eventos/'
+      preLoaderRoute: typeof AuthenticatedEventosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/eventos/lista': {
+      id: '/_authenticated/eventos/lista'
+      path: '/eventos/lista'
+      fullPath: '/eventos/lista'
+      preLoaderRoute: typeof AuthenticatedEventosListaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/eventos/painel': {
+      id: '/_authenticated/eventos/painel'
+      path: '/eventos/painel'
+      fullPath: '/eventos/painel'
+      preLoaderRoute: typeof AuthenticatedEventosPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/membros/': {
@@ -676,6 +736,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCongregacoesPainelRoute: typeof AuthenticatedCongregacoesPainelRoute
   AuthenticatedEbdCadastrarAulasRoute: typeof AuthenticatedEbdCadastrarAulasRoute
   AuthenticatedEbdPainelRoute: typeof AuthenticatedEbdPainelRoute
+  AuthenticatedEventosListaRoute: typeof AuthenticatedEventosListaRoute
+  AuthenticatedEventosPainelRoute: typeof AuthenticatedEventosPainelRoute
   AuthenticatedMembrosListaRoute: typeof AuthenticatedMembrosListaRoute
   AuthenticatedMembrosPainelRoute: typeof AuthenticatedMembrosPainelRoute
   AuthenticatedPapoRetoAgendarRoute: typeof AuthenticatedPapoRetoAgendarRoute
@@ -689,6 +751,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfiguracoesIndexRoute: typeof AuthenticatedConfiguracoesIndexRoute
   AuthenticatedCongregacoesIndexRoute: typeof AuthenticatedCongregacoesIndexRoute
   AuthenticatedEbdIndexRoute: typeof AuthenticatedEbdIndexRoute
+  AuthenticatedEventosIndexRoute: typeof AuthenticatedEventosIndexRoute
   AuthenticatedMembrosIndexRoute: typeof AuthenticatedMembrosIndexRoute
   AuthenticatedPapoRetoIndexRoute: typeof AuthenticatedPapoRetoIndexRoute
   AuthenticatedPerfilIndexRoute: typeof AuthenticatedPerfilIndexRoute
@@ -711,6 +774,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCongregacoesPainelRoute: AuthenticatedCongregacoesPainelRoute,
   AuthenticatedEbdCadastrarAulasRoute: AuthenticatedEbdCadastrarAulasRoute,
   AuthenticatedEbdPainelRoute: AuthenticatedEbdPainelRoute,
+  AuthenticatedEventosListaRoute: AuthenticatedEventosListaRoute,
+  AuthenticatedEventosPainelRoute: AuthenticatedEventosPainelRoute,
   AuthenticatedMembrosListaRoute: AuthenticatedMembrosListaRoute,
   AuthenticatedMembrosPainelRoute: AuthenticatedMembrosPainelRoute,
   AuthenticatedPapoRetoAgendarRoute: AuthenticatedPapoRetoAgendarRoute,
@@ -726,6 +791,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfiguracoesIndexRoute: AuthenticatedConfiguracoesIndexRoute,
   AuthenticatedCongregacoesIndexRoute: AuthenticatedCongregacoesIndexRoute,
   AuthenticatedEbdIndexRoute: AuthenticatedEbdIndexRoute,
+  AuthenticatedEventosIndexRoute: AuthenticatedEventosIndexRoute,
   AuthenticatedMembrosIndexRoute: AuthenticatedMembrosIndexRoute,
   AuthenticatedPapoRetoIndexRoute: AuthenticatedPapoRetoIndexRoute,
   AuthenticatedPerfilIndexRoute: AuthenticatedPerfilIndexRoute,

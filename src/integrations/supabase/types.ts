@@ -441,6 +441,109 @@ export type Database = {
           },
         ]
       }
+      evento_inscricoes: {
+        Row: {
+          created_at: string
+          email: string
+          evento_id: string
+          id: string
+          nome: string
+          observacao: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          evento_id: string
+          id?: string
+          nome: string
+          observacao?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          evento_id?: string
+          id?: string
+          nome?: string
+          observacao?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evento_inscricoes_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eventos: {
+        Row: {
+          categoria: string
+          congregacao_id: string | null
+          created_at: string
+          criado_por: string | null
+          data: string
+          descricao: string | null
+          hora_fim: string
+          hora_inicio: string
+          id: string
+          local: string
+          status: string
+          taxa: number | null
+          titulo: string
+          updated_at: string
+          vagas: number | null
+        }
+        Insert: {
+          categoria?: string
+          congregacao_id?: string | null
+          created_at?: string
+          criado_por?: string | null
+          data: string
+          descricao?: string | null
+          hora_fim: string
+          hora_inicio: string
+          id?: string
+          local: string
+          status?: string
+          taxa?: number | null
+          titulo: string
+          updated_at?: string
+          vagas?: number | null
+        }
+        Update: {
+          categoria?: string
+          congregacao_id?: string | null
+          created_at?: string
+          criado_por?: string | null
+          data?: string
+          descricao?: string | null
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          local?: string
+          status?: string
+          taxa?: number | null
+          titulo?: string
+          updated_at?: string
+          vagas?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_congregacao_id_fkey"
+            columns: ["congregacao_id"]
+            isOneToOne: false
+            referencedRelation: "congregacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       module_access: {
         Row: {
           granted_at: string
@@ -613,6 +716,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      eventos_inscritos: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          evento_id: string
+          inscritos: number
+        }[]
+      }
       has_module_access: {
         Args: { _module: string; _user_id: string }
         Returns: boolean
