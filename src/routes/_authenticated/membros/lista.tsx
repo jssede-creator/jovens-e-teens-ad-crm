@@ -185,6 +185,8 @@ const FORM_MEMBRO = {
   congregacao_id: "",
   endereco: "",
   numero: "",
+  complemento: "",
+  ponto_referencia: "",
   cidade: "",
   cep: "",
 };
@@ -329,6 +331,20 @@ function NovoMembroDialog({
                 value={form.numero}
                 onValueChange={(v) => campo("numero", v)}
                 inputMode="numeric"
+              />
+            </Field>
+            <Field label="Complemento" dica="Apartamento, bloco, casa dos fundos…">
+              <TextInput
+                value={form.complemento}
+                onValueChange={(v) => campo("complemento", v)}
+                placeholder="Ex.: Apto 32, bloco B"
+              />
+            </Field>
+            <Field label="Ponto de referência" dica="Ajuda a achar o endereço em visitas.">
+              <TextInput
+                value={form.ponto_referencia}
+                onValueChange={(v) => campo("ponto_referencia", v)}
+                placeholder="Ex.: em frente à praça"
               />
             </Field>
             <Field label="Cidade" obrigatorio erro={erros["cidade"] ?? ""}>
@@ -600,31 +616,41 @@ function MembrosLista() {
   const criarMembro = useMutation({
     mutationFn: async ({ form, lgpd }: { form: FormMembro; lgpd: boolean }) => {
       if (!lgpd) throw new Error("lgpd");
-      const { data, error } = await supabase
+      const base = {
+        user_id: null,
+        nome_completo: form.nome_completo.trim(),
+        data_nascimento: form.data_nascimento,
+        cpf: form.cpf,
+        rg: form.rg,
+        telefone: form.telefone,
+        email: form.email.trim().toLowerCase(),
+        congregacao_id: form.congregacao_id || null,
+        endereco: form.endereco.trim(),
+        numero: form.numero.trim() || null,
+        complemento: form.complemento.trim() || null,
+        cidade: form.cidade.trim(),
+        cep: form.cep,
+        compartilhou_dados_complementares: false,
+        lgpd_aceito: true,
+      };
+      const referencia = form.ponto_referencia.trim();
+
+      let { data, error } = await supabase
         .from("cadastros")
-        .insert({
-          user_id: null,
-          nome_completo: form.nome_completo.trim(),
-          data_nascimento: form.data_nascimento,
-          cpf: form.cpf,
-          rg: form.rg,
-          telefone: form.telefone,
-          email: form.email.trim().toLowerCase(),
-          congregacao_id: form.congregacao_id || null,
-          endereco: form.endereco.trim(),
-          numero: form.numero.trim() || null,
-          cidade: form.cidade.trim(),
-          cep: form.cep,
-          compartilhou_dados_complementares: false,
-          lgpd_aceito: true,
-        })
+        .insert({ ...base, ...(referencia ? { ponto_referencia: referencia } : {}) } as never)
         .select("id")
         .single();
+
+      // A coluna ponto_referencia entra pela migração 20260828230000; enquanto o
+      // banco não a tiver, o cadastro segue sem ela em vez de falhar.
+      if (error?.code === "PGRST204" && referencia) {
+        ({ data, error } = await supabase.from("cadastros").insert(base).select("id").single());
+      }
       if (error) throw error;
       await registrarAuditoria({
         acao: "criou",
         entidade: "cadastro",
-        entidadeId: data.id,
+        entidadeId: data?.id ?? null,
         detalhe: form.nome_completo.trim(),
       });
     },

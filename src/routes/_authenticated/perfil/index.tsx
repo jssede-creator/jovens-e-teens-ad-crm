@@ -433,6 +433,11 @@ function MeusDados() {
                 <Campo icone={Home} rotulo="Endereço" valor={texto("endereco")} />
                 <Campo icone={MapPin} rotulo="Número" valor={texto("numero")} />
                 <Campo icone={MapPin} rotulo="Complemento" valor={texto("complemento")} />
+                <Campo
+                  icone={MapPin}
+                  rotulo="Ponto de referência"
+                  valor={texto("ponto_referencia")}
+                />
                 <Campo icone={MapPin} rotulo="Cidade" valor={texto("cidade")} />
                 <Campo icone={MapPin} rotulo="CEP" valor={texto("cep")} />
               </div>
