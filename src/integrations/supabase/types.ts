@@ -583,6 +583,56 @@ export type Database = {
         }
         Relationships: []
       }
+      papeis: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          sistema: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          sistema?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          sistema?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      papel_permissoes: {
+        Row: {
+          module_key: string
+          papel_id: string
+        }
+        Insert: {
+          module_key: string
+          papel_id: string
+        }
+        Update: {
+          module_key?: string
+          papel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "papel_permissoes_papel_id_fkey"
+            columns: ["papel_id"]
+            isOneToOne: false
+            referencedRelation: "papeis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       papo_reto_agendamentos: {
         Row: {
           assunto: string
@@ -796,6 +846,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      usuario_papeis: {
+        Row: {
+          atribuido_em: string
+          atribuido_por: string | null
+          papel_id: string
+          user_id: string
+        }
+        Insert: {
+          atribuido_em?: string
+          atribuido_por?: string | null
+          papel_id: string
+          user_id: string
+        }
+        Update: {
+          atribuido_em?: string
+          atribuido_por?: string | null
+          papel_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuario_papeis_papel_id_fkey"
+            columns: ["papel_id"]
+            isOneToOne: false
+            referencedRelation: "papeis"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
