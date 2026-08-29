@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -114,7 +114,6 @@ export type Database = {
       }
       cadastros: {
         Row: {
-          bairro: string | null
           cep: string
           cidade: string
           compartilhou_dados_complementares: boolean
@@ -134,7 +133,6 @@ export type Database = {
           mora_com_pais: boolean | null
           nome_completo: string
           numero: string | null
-          ponto_referencia: string | null
           renda_familiar: string | null
           renda_mensal: string | null
           rg: string
@@ -144,7 +142,6 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          bairro?: string | null
           cep: string
           cidade: string
           compartilhou_dados_complementares?: boolean
@@ -164,7 +161,6 @@ export type Database = {
           mora_com_pais?: boolean | null
           nome_completo: string
           numero?: string | null
-          ponto_referencia?: string | null
           renda_familiar?: string | null
           renda_mensal?: string | null
           rg: string
@@ -174,7 +170,6 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          bairro?: string | null
           cep?: string
           cidade?: string
           compartilhou_dados_complementares?: boolean
@@ -194,7 +189,6 @@ export type Database = {
           mora_com_pais?: boolean | null
           nome_completo?: string
           numero?: string | null
-          ponto_referencia?: string | null
           renda_familiar?: string | null
           renda_mensal?: string | null
           rg?: string
@@ -444,124 +438,6 @@ export type Database = {
           },
         ]
       }
-      evento_inscricoes: {
-        Row: {
-          created_at: string
-          email: string
-          evento_id: string
-          id: string
-          nome: string
-          observacao: string | null
-          status: string
-          user_id: string
-          codigo: string | null
-          confirmado_em: string | null
-          confirmado_por: string | null
-          confirmado_por_nome: string | null
-          pagamento: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          evento_id: string
-          id?: string
-          nome: string
-          observacao?: string | null
-          status?: string
-          user_id: string
-          codigo?: string | null
-          confirmado_em?: string | null
-          confirmado_por?: string | null
-          confirmado_por_nome?: string | null
-          pagamento?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          evento_id?: string
-          id?: string
-          nome?: string
-          observacao?: string | null
-          status?: string
-          user_id?: string
-          codigo?: string | null
-          confirmado_em?: string | null
-          confirmado_por?: string | null
-          confirmado_por_nome?: string | null
-          pagamento?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "evento_inscricoes_evento_id_fkey"
-            columns: ["evento_id"]
-            isOneToOne: false
-            referencedRelation: "eventos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      eventos: {
-        Row: {
-          categoria: string
-          congregacao_id: string | null
-          created_at: string
-          criado_por: string | null
-          data: string
-          descricao: string | null
-          hora_fim: string
-          hora_inicio: string
-          id: string
-          local: string
-          status: string
-          taxa: number | null
-          titulo: string
-          updated_at: string
-          vagas: number | null
-        }
-        Insert: {
-          categoria?: string
-          congregacao_id?: string | null
-          created_at?: string
-          criado_por?: string | null
-          data: string
-          descricao?: string | null
-          hora_fim: string
-          hora_inicio: string
-          id?: string
-          local: string
-          status?: string
-          taxa?: number | null
-          titulo: string
-          updated_at?: string
-          vagas?: number | null
-        }
-        Update: {
-          categoria?: string
-          congregacao_id?: string | null
-          created_at?: string
-          criado_por?: string | null
-          data?: string
-          descricao?: string | null
-          hora_fim?: string
-          hora_inicio?: string
-          id?: string
-          local?: string
-          status?: string
-          taxa?: number | null
-          titulo?: string
-          updated_at?: string
-          vagas?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "eventos_congregacao_id_fkey"
-            columns: ["congregacao_id"]
-            isOneToOne: false
-            referencedRelation: "congregacoes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       module_access: {
         Row: {
           granted_at: string
@@ -582,85 +458,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      papeis: {
-        Row: {
-          created_at: string
-          descricao: string | null
-          id: string
-          nome: string
-          sistema: boolean
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          descricao?: string | null
-          id?: string
-          nome: string
-          sistema?: boolean
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          descricao?: string | null
-          id?: string
-          nome?: string
-          sistema?: boolean
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      papel_permissoes: {
-        Row: {
-          module_key: string
-          papel_id: string
-        }
-        Insert: {
-          module_key: string
-          papel_id: string
-        }
-        Update: {
-          module_key?: string
-          papel_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "papel_permissoes_papel_id_fkey"
-            columns: ["papel_id"]
-            isOneToOne: false
-            referencedRelation: "papeis"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      usuario_papeis: {
-        Row: {
-          atribuido_em: string
-          atribuido_por: string | null
-          papel_id: string
-          user_id: string
-        }
-        Insert: {
-          atribuido_em?: string
-          atribuido_por?: string | null
-          papel_id: string
-          user_id: string
-        }
-        Update: {
-          atribuido_em?: string
-          atribuido_por?: string | null
-          papel_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "usuario_papeis_papel_id_fkey"
-            columns: ["papel_id"]
-            isOneToOne: false
-            referencedRelation: "papeis"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       papo_reto_agendamentos: {
         Row: {
@@ -748,68 +545,6 @@ export type Database = {
         }
         Relationships: []
       }
-      projeto_tarefas: {
-        Row: {
-          created_at: string
-          descricao: string | null
-          fase: string
-          fim: string | null
-          id: string
-          inicio: string | null
-          numero: number
-          ordem: number
-          prioridade: string
-          projeto_id: string
-          responsavel_id: string | null
-          responsavel_nome: string | null
-          status: string
-          titulo: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          descricao?: string | null
-          fase: string
-          fim?: string | null
-          id?: string
-          inicio?: string | null
-          numero?: number
-          ordem?: number
-          prioridade?: string
-          projeto_id: string
-          responsavel_id?: string | null
-          responsavel_nome?: string | null
-          status?: string
-          titulo: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          descricao?: string | null
-          fase?: string
-          fim?: string | null
-          id?: string
-          inicio?: string | null
-          numero?: number
-          ordem?: number
-          prioridade?: string
-          projeto_id?: string
-          responsavel_id?: string | null
-          responsavel_nome?: string | null
-          status?: string
-          titulo?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "projeto_tarefas_projeto_id_fkey"
-            columns: ["projeto_id"]
-            isOneToOne: false
-            referencedRelation: "projetos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       projetos: {
         Row: {
           created_at: string
@@ -875,13 +610,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      eventos_inscritos: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          evento_id: string
-          inscritos: number
-        }[]
-      }
       has_module_access: {
         Args: { _module: string; _user_id: string }
         Returns: boolean
