@@ -114,6 +114,7 @@ export type Database = {
       }
       cadastros: {
         Row: {
+          bairro: string | null
           cep: string
           cidade: string
           compartilhou_dados_complementares: boolean
@@ -143,6 +144,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          bairro?: string | null
           cep: string
           cidade: string
           compartilhou_dados_complementares?: boolean
@@ -172,6 +174,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          bairro?: string | null
           cep?: string
           cidade?: string
           compartilhou_dados_complementares?: boolean
@@ -671,6 +674,68 @@ export type Database = {
           local?: string | null
         }
         Relationships: []
+      }
+      projeto_tarefas: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          fase: string
+          fim: string | null
+          id: string
+          inicio: string | null
+          numero: number
+          ordem: number
+          prioridade: string
+          projeto_id: string
+          responsavel_id: string | null
+          responsavel_nome: string | null
+          status: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          fase: string
+          fim?: string | null
+          id?: string
+          inicio?: string | null
+          numero?: number
+          ordem?: number
+          prioridade?: string
+          projeto_id: string
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          fase?: string
+          fim?: string | null
+          id?: string
+          inicio?: string | null
+          numero?: number
+          ordem?: number
+          prioridade?: string
+          projeto_id?: string
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_tarefas_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projetos: {
         Row: {
