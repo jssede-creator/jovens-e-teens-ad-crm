@@ -443,32 +443,47 @@ export type Database = {
       }
       evento_inscricoes: {
         Row: {
+          codigo: string | null
+          confirmado_em: string | null
+          confirmado_por: string | null
+          confirmado_por_nome: string | null
           created_at: string
           email: string
           evento_id: string
           id: string
           nome: string
           observacao: string | null
+          pagamento: string
           status: string
           user_id: string
         }
         Insert: {
+          codigo?: string | null
+          confirmado_em?: string | null
+          confirmado_por?: string | null
+          confirmado_por_nome?: string | null
           created_at?: string
           email: string
           evento_id: string
           id?: string
           nome: string
           observacao?: string | null
+          pagamento?: string
           status?: string
           user_id: string
         }
         Update: {
+          codigo?: string | null
+          confirmado_em?: string | null
+          confirmado_por?: string | null
+          confirmado_por_nome?: string | null
           created_at?: string
           email?: string
           evento_id?: string
           id?: string
           nome?: string
           observacao?: string | null
+          pagamento?: string
           status?: string
           user_id?: string
         }
