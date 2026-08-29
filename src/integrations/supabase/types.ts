@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -446,49 +446,49 @@ export type Database = {
       }
       evento_inscricoes: {
         Row: {
+          codigo: string | null
+          confirmado_em: string | null
+          confirmado_por: string | null
+          confirmado_por_nome: string | null
           created_at: string
           email: string
           evento_id: string
           id: string
           nome: string
           observacao: string | null
+          pagamento: string
           status: string
           user_id: string
-          codigo: string | null
-          confirmado_em: string | null
-          confirmado_por: string | null
-          confirmado_por_nome: string | null
-          pagamento: string
         }
         Insert: {
+          codigo?: string | null
+          confirmado_em?: string | null
+          confirmado_por?: string | null
+          confirmado_por_nome?: string | null
           created_at?: string
           email: string
           evento_id: string
           id?: string
           nome: string
           observacao?: string | null
+          pagamento?: string
           status?: string
           user_id: string
+        }
+        Update: {
           codigo?: string | null
           confirmado_em?: string | null
           confirmado_por?: string | null
           confirmado_por_nome?: string | null
-          pagamento?: string
-        }
-        Update: {
           created_at?: string
           email?: string
           evento_id?: string
           id?: string
           nome?: string
           observacao?: string | null
+          pagamento?: string
           status?: string
           user_id?: string
-          codigo?: string | null
-          confirmado_em?: string | null
-          confirmado_por?: string | null
-          confirmado_por_nome?: string | null
-          pagamento?: string
         }
         Relationships: [
           {
@@ -633,35 +633,6 @@ export type Database = {
           },
         ]
       }
-      usuario_papeis: {
-        Row: {
-          atribuido_em: string
-          atribuido_por: string | null
-          papel_id: string
-          user_id: string
-        }
-        Insert: {
-          atribuido_em?: string
-          atribuido_por?: string | null
-          papel_id: string
-          user_id: string
-        }
-        Update: {
-          atribuido_em?: string
-          atribuido_por?: string | null
-          papel_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "usuario_papeis_papel_id_fkey"
-            columns: ["papel_id"]
-            isOneToOne: false
-            referencedRelation: "papeis"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       papo_reto_agendamentos: {
         Row: {
           assunto: string
@@ -671,6 +642,7 @@ export type Database = {
           hora_inicio: string
           horario_id: string | null
           id: string
+          local: string | null
           mensagem: string | null
           resposta: string | null
           solicitante_email: string
@@ -687,6 +659,7 @@ export type Database = {
           hora_inicio: string
           horario_id?: string | null
           id?: string
+          local?: string | null
           mensagem?: string | null
           resposta?: string | null
           solicitante_email: string
@@ -703,6 +676,7 @@ export type Database = {
           hora_inicio?: string
           horario_id?: string | null
           id?: string
+          local?: string | null
           mensagem?: string | null
           resposta?: string | null
           solicitante_email?: string
@@ -729,6 +703,7 @@ export type Database = {
           hora_fim: string
           hora_inicio: string
           id: string
+          local: string | null
         }
         Insert: {
           created_at?: string
@@ -737,6 +712,7 @@ export type Database = {
           hora_fim: string
           hora_inicio: string
           id?: string
+          local?: string | null
         }
         Update: {
           created_at?: string
@@ -745,6 +721,7 @@ export type Database = {
           hora_fim?: string
           hora_inicio?: string
           id?: string
+          local?: string | null
         }
         Relationships: []
       }
@@ -870,13 +847,42 @@ export type Database = {
         }
         Relationships: []
       }
+      usuario_papeis: {
+        Row: {
+          atribuido_em: string
+          atribuido_por: string | null
+          papel_id: string
+          user_id: string
+        }
+        Insert: {
+          atribuido_em?: string
+          atribuido_por?: string | null
+          papel_id: string
+          user_id: string
+        }
+        Update: {
+          atribuido_em?: string
+          atribuido_por?: string | null
+          papel_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuario_papeis_papel_id_fkey"
+            columns: ["papel_id"]
+            isOneToOne: false
+            referencedRelation: "papeis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       eventos_inscritos: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           evento_id: string
           inscritos: number
