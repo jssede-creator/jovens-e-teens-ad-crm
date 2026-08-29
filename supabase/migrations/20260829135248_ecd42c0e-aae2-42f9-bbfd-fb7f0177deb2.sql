@@ -1,0 +1,1 @@
+alter table public.cadastros add column if not exists ponto_referencia text;

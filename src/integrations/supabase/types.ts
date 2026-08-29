@@ -133,6 +133,7 @@ export type Database = {
           mora_com_pais: boolean | null
           nome_completo: string
           numero: string | null
+          ponto_referencia: string | null
           renda_familiar: string | null
           renda_mensal: string | null
           rg: string
@@ -161,6 +162,7 @@ export type Database = {
           mora_com_pais?: boolean | null
           nome_completo: string
           numero?: string | null
+          ponto_referencia?: string | null
           renda_familiar?: string | null
           renda_mensal?: string | null
           rg: string
@@ -189,6 +191,7 @@ export type Database = {
           mora_com_pais?: boolean | null
           nome_completo?: string
           numero?: string | null
+          ponto_referencia?: string | null
           renda_familiar?: string | null
           renda_mensal?: string | null
           rg?: string
