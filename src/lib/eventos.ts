@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { registrarAuditoria } from "@/lib/auditoria";
 
 /** Tipos, listas e consultas compartilhadas pelo módulo de Eventos. */
 
@@ -32,15 +33,15 @@ export type Pagamento = "isento" | "pendente" | "confirmado";
 
 export const PAGAMENTO: Record<Pagamento, { rotulo: string; classe: string }> = {
   isento: {
-    rotulo: "Presença confirmada",
+    rotulo: "Inscrito",
     classe: "bg-green-50 text-green-700 dark:bg-green-950/50 dark:text-green-300",
   },
   pendente: {
-    rotulo: "Aguardando confirmação",
+    rotulo: "Aguardando aprovação",
     classe: "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
   },
   confirmado: {
-    rotulo: "Presença confirmada",
+    rotulo: "Pagamento aprovado",
     classe: "bg-green-50 text-green-700 dark:bg-green-950/50 dark:text-green-300",
   },
 };
@@ -99,7 +100,7 @@ export function aceitaInscricao(e: Evento, hoje: string): boolean {
 }
 
 /** Evento sem taxa não fica devendo nada; com taxa, nasce pendente de PIX. */
-export function pagamentoInicial(evento: Evento): Pagamento {
+export function pagamentoInicial(evento: Pick<Evento, "taxa">): Pagamento {
   return evento.taxa == null || evento.taxa === 0 ? "isento" : "pendente";
 }
 
@@ -148,4 +149,60 @@ export async function carregarEventos(userId: string | null) {
     minhaConfirmacao:
       (minhasPorEvento.get(e["id"] as string)?.["confirmado_em"] as string | null) ?? null,
   })) as Evento[];
+}
+
+/** Inscrições com PIX aguardando aprovação da liderança, em todos os eventos. */
+export async function carregarPendentes(): Promise<Inscricao[]> {
+  const { data, error } = await supabase
+    .from("evento_inscricoes")
+    .select("*")
+    .eq("pagamento", "pendente")
+    .eq("status", "confirmada")
+    .order("created_at");
+  if (error) throw error;
+  return (data ?? []) as unknown as Inscricao[];
+}
+
+/**
+ * Aprova o pagamento de uma inscrição, ou desfaz a aprovação. Devolve a data
+ * gravada e quem aprovou, para montar o comprovante.
+ */
+export async function aprovarInscricao(
+  inscricao: Pick<Inscricao, "id" | "nome">,
+  evento: Pick<Evento, "id" | "titulo" | "taxa"> | null,
+  aprovando: boolean,
+) {
+  const { data: sessao } = await supabase.auth.getSession();
+  const user = sessao.session?.user;
+  const confirmadoEm = new Date().toISOString();
+  const confirmadoPor =
+    (user?.user_metadata?.["nome"] as string | undefined) ?? user?.email ?? null;
+
+  const registro = aprovando
+    ? {
+        pagamento: "confirmado",
+        confirmado_em: confirmadoEm,
+        confirmado_por: user?.id ?? null,
+        confirmado_por_nome: confirmadoPor,
+      }
+    : {
+        pagamento: evento ? pagamentoInicial(evento) : "pendente",
+        confirmado_em: null,
+        confirmado_por: null,
+        confirmado_por_nome: null,
+      };
+
+  const { error } = await supabase
+    .from("evento_inscricoes")
+    .update(registro as never)
+    .eq("id", inscricao.id);
+  if (error) throw error;
+
+  await registrarAuditoria({
+    acao: aprovando ? "aprovou pagamento" : "desfez aprovação",
+    entidade: "evento",
+    entidadeId: evento?.id ?? null,
+    detalhe: inscricao.nome + (evento ? " · " + evento.titulo : ""),
+  });
+  return { confirmadoEm, confirmadoPor };
 }

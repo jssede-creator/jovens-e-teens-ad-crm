@@ -4,6 +4,7 @@ import { CalendarDays, CalendarPlus, Ticket, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { PillButton } from "@/components/cadastro/ui";
+import { AprovacoesEventos } from "@/components/crm/aprovacoes-eventos";
 import { Comprovante, type DadosComprovante } from "@/components/crm/comprovante";
 import { EventoCard } from "@/components/crm/evento-card";
 import { Bloco, PageHeader, StatCardTopo, VazioBloco } from "@/components/crm/pagina";
@@ -198,15 +199,17 @@ function EventosPainel() {
         />
         <StatCardTopo
           icone={Ticket}
-          rotulo="Aguardando confirmação"
+          rotulo="Aguardando aprovação"
           valor={String(indicadores.aguardando)}
-          rodape="reservas suas com PIX pendente"
+          rodape="suas reservas com PIX pendente"
         />
       </div>
 
       {erro ? <p className="mt-3 text-xs text-jt-coral">{erro}</p> : null}
 
       <div className="mt-4 space-y-4">
+        {podeGerenciar ? <AprovacoesEventos eventos={eventos} /> : null}
+
         <Bloco
           titulo="Próximos eventos"
           descricao={
@@ -255,7 +258,7 @@ function EventosPainel() {
                   <div className="flex shrink-0 items-center gap-3">
                     {e.meuPagamento === "pendente" ? (
                       <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
-                        aguardando confirmação
+                        aguardando aprovação
                       </span>
                     ) : (
                       <button
@@ -289,7 +292,7 @@ function EventosPainel() {
         <DialogContent className="max-h-[90vh] overflow-y-auto border-none bg-transparent p-0 shadow-none sm:max-w-sm">
           <DialogHeader className="sr-only">
             <DialogTitle>Comprovante de inscrição</DialogTitle>
-            <DialogDescription>Extrato da sua presença confirmada.</DialogDescription>
+            <DialogDescription>Extrato da sua inscrição.</DialogDescription>
           </DialogHeader>
           {comprovante ? <Comprovante dados={comprovante} /> : null}
         </DialogContent>

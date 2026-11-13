@@ -102,17 +102,18 @@ export function EventoCard({
           {pendente ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 dark:border-amber-900/50 dark:bg-amber-950/20">
               <p className="flex items-center gap-1.5 text-xs font-medium text-amber-700 dark:text-amber-300">
-                <Clock3 className="h-3.5 w-3.5" aria-hidden /> Aguardando confirmação
+                <Clock3 className="h-3.5 w-3.5" aria-hidden /> Aguardando aprovação
               </p>
               <p className="mt-1 text-xs text-jt-muted">
                 Sua vaga está guardada. Faça o PIX de {taxaFormatada(evento.taxa)} e a liderança
-                confirma a presença por aqui.
+                aprova sua inscrição por aqui.
               </p>
             </div>
           ) : (
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="gap-1.5 border-transparent bg-green-50 font-normal text-green-700 dark:bg-green-950/50 dark:text-green-300">
-                <Check className="h-3 w-3" aria-hidden /> Presença confirmada
+                <Check className="h-3 w-3" aria-hidden />{" "}
+                {evento.meuPagamento === "confirmado" ? "Pagamento aprovado" : "Inscrito"}
               </Badge>
               {onComprovante && evento.meuCodigo ? (
                 <button

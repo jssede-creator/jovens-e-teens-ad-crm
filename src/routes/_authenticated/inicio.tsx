@@ -4,6 +4,7 @@ import { ArrowRight, CalendarClock, ClipboardCheck, MessageCircle, Sparkles } fr
 import { useEffect, useState } from "react";
 
 import { PillButton } from "@/components/cadastro/ui";
+import { AprovacoesEventos } from "@/components/crm/aprovacoes-eventos";
 import { EventoCard } from "@/components/crm/evento-card";
 import { Bloco } from "@/components/crm/pagina";
 import { useAcesso } from "@/hooks/use-acesso";
@@ -71,6 +72,7 @@ function MenuInicial() {
 
   const vePapo = podeVer({ tipo: "modulo", modulo: "papo_reto" }, acesso);
   const veEventos = podeVer({ tipo: "modulo", modulo: "eventos" }, acesso);
+  const geraEventos = podeVer({ tipo: "modulo", modulo: "eventos_gerenciar" }, acesso);
   const [conta, setConta] = useState<{ id: string; nome: string; email: string } | null>(null);
   const [erroEvento, setErroEvento] = useState("");
 
@@ -247,6 +249,10 @@ function MenuInicial() {
           />
         </div>
       </div>
+
+      {geraEventos && eventos.data ? (
+        <AprovacoesEventos eventos={eventos.data} ocultarVazio />
+      ) : null}
 
       {veEventos ? (
         <section>

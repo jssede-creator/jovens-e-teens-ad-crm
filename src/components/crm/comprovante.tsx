@@ -143,10 +143,10 @@ export function Comprovante({
             <CheckCircle2 className="h-8 w-8 text-jt-success" aria-hidden />
           </div>
           <h3 className="mt-3 font-display text-xl font-semibold text-jt-text">
-            Presença confirmada
+            {pago ? "Pagamento aprovado" : "Inscrição confirmada"}
           </h3>
           <p className="mt-1 text-sm text-jt-muted">
-            {pago ? "Pagamento conferido pela liderança." : "Inscrição validada pela liderança."}
+            {pago ? "Pagamento conferido pela liderança." : "Evento gratuito, vaga garantida."}
           </p>
         </div>
 
@@ -193,7 +193,7 @@ export function Comprovante({
 
           {dados.confirmadoEm ? (
             <p className="text-left text-[11px] text-jt-muted">
-              Confirmado em {dataHoraBR(dados.confirmadoEm)}
+              Aprovado em {dataHoraBR(dados.confirmadoEm)}
               {dados.confirmadoPor ? ` por ${dados.confirmadoPor}` : ""}.
             </p>
           ) : null}

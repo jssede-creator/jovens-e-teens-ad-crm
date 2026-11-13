@@ -41,6 +41,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { hojeISO, iniciais } from "@/lib/ebd";
 import {
+  aprovarInscricao,
   CATEGORIAS_EVENTO,
   carregarEventos,
   LOCAIS_EVENTO,
@@ -354,38 +355,10 @@ function InscritosDialog({
       inscricao: Inscricao;
       confirmando: boolean;
     }) => {
-      const { data: sessao } = await supabase.auth.getSession();
-      const user = sessao.session?.user;
-      const registro = confirmando
-        ? {
-            pagamento: "confirmado",
-            confirmado_em: new Date().toISOString(),
-            confirmado_por: user?.id ?? null,
-            confirmado_por_nome:
-              (user?.user_metadata?.["nome"] as string | undefined) ?? user?.email ?? null,
-          }
-        : {
-            pagamento: evento?.taxa ? "pendente" : "isento",
-            confirmado_em: null,
-            confirmado_por: null,
-            confirmado_por_nome: null,
-          };
-
-      const { error } = await supabase
-        .from("evento_inscricoes")
-        .update(registro as never)
-        .eq("id", inscricao.id);
-      if (error) throw error;
-
-      await registrarAuditoria({
-        acao: confirmando ? "confirmou presença" : "reabriu inscrição",
-        entidade: "evento",
-        entidadeId: evento?.id ?? null,
-        detalhe: inscricao.nome + (evento ? " · " + evento.titulo : ""),
-      });
-      return { inscricao, confirmando };
+      const gravado = await aprovarInscricao(inscricao, evento, confirmando);
+      return { inscricao, confirmando, ...gravado };
     },
-    onSuccess: async ({ inscricao, confirmando }) => {
+    onSuccess: async ({ inscricao, confirmando, confirmadoEm, confirmadoPor }) => {
       setErro("");
       await queryClient.invalidateQueries({ queryKey: ["evento-inscritos", evento?.id] });
       await queryClient.invalidateQueries({ queryKey: ["eventos"] });
@@ -400,8 +373,8 @@ function InscritosDialog({
           horaInicio: evento.hora_inicio,
           local: evento.local,
           taxa: evento.taxa,
-          confirmadoEm: new Date().toISOString(),
-          confirmadoPor: null,
+          confirmadoEm,
+          confirmadoPor,
         });
       }
     },
@@ -409,7 +382,7 @@ function InscritosDialog({
   });
 
   const lista = (consulta.data ?? []).filter((i) => i.status === "confirmada");
-  const confirmados = lista.filter((i) => i.pagamento === "confirmado").length;
+  const confirmados = lista.filter((i) => i.pagamento !== "pendente").length;
   const pendentes = lista.filter((i) => i.pagamento === "pendente").length;
 
   return (
@@ -432,11 +405,11 @@ function InscritosDialog({
           {lista.length > 0 ? (
             <div className="flex flex-wrap gap-2 text-xs">
               <Badge className="border-transparent bg-green-50 font-normal text-green-700 dark:bg-green-950/50 dark:text-green-300">
-                {confirmados} com presença confirmada
+                {confirmados} {evento?.taxa ? "com pagamento aprovado" : "inscrito(s)"}
               </Badge>
               {pendentes > 0 ? (
                 <Badge className="border-transparent bg-amber-50 font-normal text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
-                  {pendentes} aguardando confirmação
+                  {pendentes} aguardando aprovação
                 </Badge>
               ) : null}
             </div>
@@ -464,7 +437,7 @@ function InscritosDialog({
                       <Badge
                         className={cn("shrink-0 border-transparent font-normal", estado.classe)}
                       >
-                        {i.pagamento === "isento" && !confirmado ? "Inscrito" : estado.rotulo}
+                        {estado.rotulo}
                       </Badge>
                     </div>
 
@@ -473,7 +446,7 @@ function InscritosDialog({
                         reservou em {dataParaBR(i.created_at.slice(0, 10))}
                       </span>
                       {podeGerenciar ? (
-                        confirmado ? (
+                        i.pagamento !== "pendente" ? (
                           <>
                             <button
                               type="button"
@@ -495,14 +468,18 @@ function InscritosDialog({
                             >
                               <Receipt className="h-3.5 w-3.5" aria-hidden /> comprovante
                             </button>
-                            <button
-                              type="button"
-                              disabled={confirmar.isPending}
-                              onClick={() => confirmar.mutate({ inscricao: i, confirmando: false })}
-                              className="text-xs text-jt-muted underline-offset-2 transition hover:text-jt-coral hover:underline disabled:opacity-40"
-                            >
-                              desfazer
-                            </button>
+                            {confirmado ? (
+                              <button
+                                type="button"
+                                disabled={confirmar.isPending}
+                                onClick={() =>
+                                  confirmar.mutate({ inscricao: i, confirmando: false })
+                                }
+                                className="text-xs text-jt-muted underline-offset-2 transition hover:text-jt-coral hover:underline disabled:opacity-40"
+                              >
+                                desfazer aprovação
+                              </button>
+                            ) : null}
                           </>
                         ) : (
                           <PillButton
@@ -511,7 +488,7 @@ function InscritosDialog({
                             onClick={() => confirmar.mutate({ inscricao: i, confirmando: true })}
                           >
                             <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-                            {evento?.taxa ? "Confirmar pagamento" : "Confirmar presença"}
+                            Aprovar pagamento
                           </PillButton>
                         )
                       ) : null}
@@ -544,7 +521,7 @@ function InscritosDialog({
         <DialogContent className="max-h-[90vh] overflow-y-auto border-none bg-transparent p-0 shadow-none sm:max-w-sm">
           <DialogHeader className="sr-only">
             <DialogTitle>Comprovante de inscrição</DialogTitle>
-            <DialogDescription>Extrato da presença confirmada.</DialogDescription>
+            <DialogDescription>Extrato da inscrição.</DialogDescription>
           </DialogHeader>
           {comprovante ? <Comprovante dados={comprovante} comemorar={recemConfirmado} /> : null}
         </DialogContent>
