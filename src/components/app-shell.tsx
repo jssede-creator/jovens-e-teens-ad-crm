@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAcesso } from "@/hooks/use-acesso";
+import { useSituacaoCadastro } from "@/hooks/use-situacao-cadastro";
 import { supabase } from "@/integrations/supabase/client";
 import { HOME_ROTA, itensVisiveis, migalhas, navegacao, type NavItem } from "@/lib/nav";
 import { cn } from "@/lib/utils";
@@ -264,6 +265,23 @@ function Sidebar({
   conta: { nome: string; email: string } | null;
   onSair: () => void;
 }) {
+  const { data: cadastro } = useSituacaoCadastro();
+  const situacao = cadastro?.situacao;
+
+  /**
+   * "Complementar cadastro" só aparece enquanto há algo a fazer, com um ponto
+   * de destaque. Completo, a edição fica em Meus dados.
+   */
+  const ajustarCadastro = (item: NavItem): (NavItem & { destaque?: boolean }) | null => {
+    if (item.rota !== "/") return item;
+    if (situacao === undefined || situacao === "completo") return null;
+    return {
+      ...item,
+      rotulo: situacao === "sem" ? "Fazer cadastro" : item.rotulo,
+      destaque: true,
+    };
+  };
+
   return (
     <div className="flex h-full flex-col">
       <Link
@@ -287,7 +305,9 @@ function Sidebar({
 
       <nav className="flex-1 overflow-y-auto px-2 py-3">
         {navegacao.map((grupo) => {
-          const itens = itensVisiveis(grupo.itens, acesso as never);
+          const itens = itensVisiveis(grupo.itens, acesso as never)
+            .map(ajustarCadastro)
+            .filter((i): i is NavItem & { destaque?: boolean } => i !== null);
           if (!itens.length) return null;
           return (
             <div key={grupo.titulo} className="mb-4">
@@ -301,6 +321,7 @@ function Sidebar({
                   <ItemBarra
                     key={item.rota + item.rotulo}
                     item={item}
+                    destaque={item.destaque ?? false}
                     recolhida={recolhida}
                     pathname={pathname}
                   />
@@ -354,10 +375,12 @@ function Sidebar({
 
 function ItemBarra({
   item,
+  destaque = false,
   recolhida,
   pathname,
 }: {
   item: NavItem;
+  destaque?: boolean;
   recolhida: boolean;
   pathname: string;
 }) {
@@ -381,9 +404,21 @@ function ItemBarra({
   if (!temFilhos || recolhida) {
     return (
       <li>
-        <Link to={item.rota} className={classesLink} title={item.rotulo}>
+        <Link to={item.rota} className={cn(classesLink, "relative")} title={item.rotulo}>
           <Icone className="h-[18px] w-[18px] shrink-0" aria-hidden />
           {!recolhida ? <span className="truncate">{item.rotulo}</span> : null}
+          {destaque ? (
+            <>
+              <span
+                className={cn(
+                  "h-2 w-2 shrink-0 rounded-full bg-jt-coral",
+                  recolhida ? "absolute right-1.5 top-1.5" : "ml-auto",
+                )}
+                aria-hidden
+              />
+              <span className="sr-only">(pendente)</span>
+            </>
+          ) : null}
         </Link>
       </li>
     );

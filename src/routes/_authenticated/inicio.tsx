@@ -1,19 +1,28 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarClock, ClipboardCheck, MessageCircle, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  ArrowRight,
+  CalendarClock,
+  ClipboardCheck,
+  MessageCircle,
+  Sparkles,
+  Ticket,
+} from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { PillButton } from "@/components/cadastro/ui";
 import { AprovacoesEventos } from "@/components/crm/aprovacoes-eventos";
 import { EventoCard } from "@/components/crm/evento-card";
 import { Bloco } from "@/components/crm/pagina";
 import { useAcesso } from "@/hooks/use-acesso";
+import { useSituacaoCadastro } from "@/hooks/use-situacao-cadastro";
 import { supabase } from "@/integrations/supabase/client";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { hojeISO } from "@/lib/ebd";
 import { carregarEventos, type Evento } from "@/lib/eventos";
 import { dataParaBR, hora, mensagemErro } from "@/lib/formato";
 import { itensVisiveis, navegacao, podeVer } from "@/lib/nav";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
@@ -45,7 +54,7 @@ function CartaoResumo({
   icone: typeof CalendarClock;
   rotulo: string;
   valor: string;
-  rodape: string;
+  rodape: ReactNode;
 }) {
   return (
     <div className="rounded-[20px] border border-jt-line bg-jt-panel p-4">
@@ -128,14 +137,6 @@ function MenuInicial() {
       const { data: sessao } = await supabase.auth.getSession();
       const userId = sessao.session?.user?.id;
 
-      const cadastro = userId
-        ? await supabase
-            .from("cadastros")
-            .select("compartilhou_dados_complementares, congregacoes(nome)")
-            .eq("user_id", userId)
-            .maybeSingle()
-        : null;
-
       let proximo: { data: string; hora_inicio: string; assunto: string } | null = null;
       let pendentes = 0;
       let total = 0;
@@ -155,21 +156,48 @@ function MenuInicial() {
           null;
       }
 
-      return {
-        temCadastro: Boolean(cadastro?.data),
-        completo: cadastro?.data?.compartilhou_dados_complementares ?? false,
-        congregacao:
-          (cadastro?.data?.congregacoes as unknown as { nome: string } | null)?.nome ?? "—",
-        proximo,
-        pendentes,
-        totalAgendamentos: total,
-      };
+      return { proximo, pendentes, totalAgendamentos: total };
     },
   });
 
-  const d = resumo.data;
-  const etapas = d ? (d.temCadastro ? 1 : 0) + (d.completo ? 1 : 0) : 0;
+  const cadastro = useSituacaoCadastro();
+  const situacao = cadastro.data?.situacao;
+  const congregacao = cadastro.data?.congregacao ?? "—";
+  const temCadastro = situacao === "basico" || situacao === "completo";
+  const etapas = situacao === "completo" ? 2 : situacao === "basico" ? 1 : 0;
   const percentual = Math.round((etapas / 2) * 100);
+  // Cadastro em dia (ou ainda carregando): o topo vira uma linha de indicadores.
+  const compacto = situacao === undefined || situacao === "completo";
+
+  const d = resumo.data;
+  const hoje = hojeISO();
+  const minhasReservas = (eventos.data ?? []).filter(
+    (e) => e.minhaInscricao !== null && e.data >= hoje && e.status !== "cancelado",
+  );
+  const reservasPendentes = minhasReservas.filter((e) => e.meuPagamento === "pendente").length;
+
+  const cartaoPapo = (
+    <CartaoResumo
+      icone={CalendarClock}
+      rotulo="Próximo papo reto"
+      valor={d?.proximo ? dataParaBR(d.proximo.data) : "—"}
+      rodape={
+        d?.proximo
+          ? `${hora(d.proximo.hora_inicio)} · ${d.proximo.assunto}`
+          : vePapo
+            ? "nada marcado"
+            : "sem acesso ao papo reto"
+      }
+    />
+  );
+  const cartaoAgendamentos = (
+    <CartaoResumo
+      icone={MessageCircle}
+      rotulo="Agendamentos"
+      valor={String(d?.totalAgendamentos ?? 0)}
+      rodape={`${d?.pendentes ?? 0} aguardando resposta`}
+    />
+  );
 
   const areas = navegacao.flatMap((grupo) =>
     itensVisiveis(grupo.itens, acesso).filter((i) => i.rota !== "/inicio" && i.rota !== "/"),
@@ -182,77 +210,103 @@ function MenuInicial() {
         {nome ? `, ${nome}` : ""}. Tudo o que você acessa no CRM começa por aqui.
       </p>
 
-      <div className="grid items-start gap-4 lg:grid-cols-[1fr_360px]">
-        <Bloco>
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-jt-blue/10 text-jt-blue">
-              <Sparkles className="h-5 w-5" aria-hidden />
-            </div>
-            <h2 className="font-display text-base font-semibold text-jt-text">
-              Complemento de cadastro
-            </h2>
-          </div>
-
-          <p className="mt-2.5 max-w-lg text-sm text-jt-muted">
-            {!d?.temCadastro
-              ? "Você ainda não preencheu o cadastro do ministério. Leva poucos minutos."
-              : d.completo
-                ? "Seu cadastro está completo. Se algo mudou — endereço, estudo, trabalho ou renda — atualize quando quiser."
-                : "Falta a parte complementar do seu cadastro: estudo, trabalho e composição familiar."}
-          </p>
-
-          <div className="mt-5">
-            <div className="flex items-baseline justify-between text-xs text-jt-muted">
-              <span className="num">{etapas} de 2 etapas concluídas</span>
-              <span className="num">{percentual}%</span>
-            </div>
-            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-jt-panel-2">
-              <div
-                className="h-full rounded-full bg-jt-success transition-[width]"
-                style={{ width: `${percentual}%` }}
-              />
-            </div>
-
-            <Link to="/" className="mt-4 inline-block">
-              <PillButton className="h-11 px-6">
-                {!d?.temCadastro
-                  ? "Fazer meu cadastro"
-                  : d.completo
-                    ? "Revisar meu cadastro"
-                    : "Completar cadastro"}
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </PillButton>
-            </Link>
-          </div>
-        </Bloco>
-
-        <div className="space-y-3">
+      {compacto ? (
+        <div
+          className={cn(
+            "grid gap-4 sm:grid-cols-2",
+            veEventos ? "lg:grid-cols-4" : "lg:grid-cols-3",
+          )}
+        >
           <CartaoResumo
             icone={ClipboardCheck}
-            rotulo="Situação do cadastro"
-            valor={!d?.temCadastro ? "Pendente" : d.completo ? "Completo" : "Básico"}
-            rodape={d?.temCadastro ? `Congregação ${d.congregacao}` : "Sem cadastro no ministério"}
-          />
-          <CartaoResumo
-            icone={CalendarClock}
-            rotulo="Próximo papo reto"
-            valor={d?.proximo ? dataParaBR(d.proximo.data) : "—"}
+            rotulo="Meu cadastro"
+            valor={situacao === "completo" ? "Completo ✓" : "—"}
             rodape={
-              d?.proximo
-                ? `${hora(d.proximo.hora_inicio)} · ${d.proximo.assunto}`
-                : vePapo
-                  ? "nada marcado"
-                  : "sem acesso ao papo reto"
+              situacao === "completo" ? (
+                <>
+                  {congregacao} ·{" "}
+                  <Link to="/perfil" className="font-medium text-jt-blue hover:underline">
+                    editar
+                  </Link>
+                </>
+              ) : (
+                "carregando…"
+              )
             }
           />
-          <CartaoResumo
-            icone={MessageCircle}
-            rotulo="Agendamentos"
-            valor={String(d?.totalAgendamentos ?? 0)}
-            rodape={`${d?.pendentes ?? 0} aguardando resposta`}
-          />
+          {cartaoPapo}
+          {cartaoAgendamentos}
+          {veEventos ? (
+            <CartaoResumo
+              icone={Ticket}
+              rotulo="Minhas reservas"
+              valor={String(minhasReservas.length)}
+              rodape={
+                reservasPendentes > 0 ? (
+                  <Link
+                    to="/eventos/painel"
+                    className="font-medium text-amber-700 hover:underline dark:text-amber-300"
+                  >
+                    {reservasPendentes} aguardando aprovação
+                  </Link>
+                ) : (
+                  "eventos com inscrição"
+                )
+              }
+            />
+          ) : null}
         </div>
-      </div>
+      ) : (
+        <div className="grid items-start gap-4 lg:grid-cols-[1fr_360px]">
+          <Bloco>
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-jt-blue/10 text-jt-blue">
+                <Sparkles className="h-5 w-5" aria-hidden />
+              </div>
+              <h2 className="font-display text-base font-semibold text-jt-text">
+                Complemento de cadastro
+              </h2>
+            </div>
+
+            <p className="mt-2.5 max-w-lg text-sm text-jt-muted">
+              {!temCadastro
+                ? "Você ainda não preencheu o cadastro do ministério. Leva poucos minutos."
+                : "Falta a parte complementar do seu cadastro: estudo, trabalho e composição familiar."}
+            </p>
+
+            <div className="mt-5">
+              <div className="flex items-baseline justify-between text-xs text-jt-muted">
+                <span className="num">{etapas} de 2 etapas concluídas</span>
+                <span className="num">{percentual}%</span>
+              </div>
+              <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-jt-panel-2">
+                <div
+                  className="h-full rounded-full bg-jt-success transition-[width]"
+                  style={{ width: `${percentual}%` }}
+                />
+              </div>
+
+              <Link to="/" className="mt-4 inline-block">
+                <PillButton className="h-11 px-6">
+                  {!temCadastro ? "Fazer meu cadastro" : "Completar cadastro"}
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </PillButton>
+              </Link>
+            </div>
+          </Bloco>
+
+          <div className="space-y-3">
+            <CartaoResumo
+              icone={ClipboardCheck}
+              rotulo="Situação do cadastro"
+              valor={temCadastro ? "Básico" : "Pendente"}
+              rodape={temCadastro ? `Congregação ${congregacao}` : "Sem cadastro no ministério"}
+            />
+            {cartaoPapo}
+            {cartaoAgendamentos}
+          </div>
+        </div>
+      )}
 
       {geraEventos && eventos.data ? (
         <AprovacoesEventos eventos={eventos.data} ocultarVazio />
