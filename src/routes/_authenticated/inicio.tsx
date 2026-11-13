@@ -215,7 +215,11 @@ function MenuInicial() {
 
             <Link to="/" className="mt-4 inline-block">
               <PillButton className="h-11 px-6">
-                {d?.temCadastro ? "Revisar meu cadastro" : "Fazer meu cadastro"}
+                {!d?.temCadastro
+                  ? "Fazer meu cadastro"
+                  : d.completo
+                    ? "Revisar meu cadastro"
+                    : "Completar cadastro"}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </PillButton>
             </Link>

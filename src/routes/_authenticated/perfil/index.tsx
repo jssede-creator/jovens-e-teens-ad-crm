@@ -298,6 +298,13 @@ function MeusDados() {
 
           <div className="flex flex-wrap items-center gap-2">
             <PillButton
+              className="h-9 rounded-full px-4 text-[13px]"
+              onClick={() => navigate({ to: "/" })}
+            >
+              <Pencil className="h-4 w-4" aria-hidden />
+              {c ? "Editar meus dados" : "Fazer meu cadastro"}
+            </PillButton>
+            <PillButton
               variante="outline"
               className="h-9 rounded-full px-4 text-[13px]"
               onClick={() => inputFoto.current?.click()}

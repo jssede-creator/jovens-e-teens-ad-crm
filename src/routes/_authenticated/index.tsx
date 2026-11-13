@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Check, Plus, Sparkles, Trash2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import ministerioFoto from "@/assets/inabalaveis.png";
@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { DataCampo } from "@/components/crm/campos";
+import { Carregando } from "@/components/sem-permissao";
 import { supabase } from "@/integrations/supabase/client";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { convidarPessoa } from "@/lib/convite.functions";
@@ -157,18 +158,70 @@ const CEP_INCOMPLETO = "Informe o CEP completo, com 8 dígitos.";
 const temFamiliaPropria = (estadoCivil: string) =>
   estadoCivil === "Casado(a)" || estadoCivil === "União estável";
 
+const PESSOA_VAZIA: Pessoa = { nome_completo: "", parentesco: "", idade: "", ocupacao: "" };
+
+/** Cadastro da própria conta, já gravado no banco. */
+type CadastroSalvo = Record<string, unknown> & {
+  id: string;
+  composicao_familiar?: Record<string, unknown>[] | null;
+};
+
+/** Converte o cadastro gravado nos campos do formulário. */
+function cadastroParaFormulario(c: CadastroSalvo): Formulario {
+  const texto = (chave: keyof Formulario) => (c[chave] == null ? "" : String(c[chave]));
+  const simNao = (chave: keyof Formulario) =>
+    typeof c[chave] === "boolean" ? (c[chave] as boolean) : null;
+  return {
+    nome_completo: texto("nome_completo"),
+    email: texto("email"),
+    congregacao_id: texto("congregacao_id"),
+    data_nascimento: texto("data_nascimento"),
+    telefone: texto("telefone"),
+    cpf: texto("cpf"),
+    rg: texto("rg"),
+    endereco: texto("endereco"),
+    numero: texto("numero"),
+    bairro: texto("bairro"),
+    complemento: texto("complemento"),
+    cidade: texto("cidade"),
+    cep: texto("cep"),
+    escolaridade: texto("escolaridade"),
+    local_estudo: texto("local_estudo"),
+    curso: texto("curso"),
+    estado_civil: texto("estado_civil"),
+    trabalha_atualmente: simNao("trabalha_atualmente"),
+    renda_mensal: texto("renda_mensal"),
+    mora_com_pais: simNao("mora_com_pais"),
+    renda_familiar: texto("renda_familiar"),
+  };
+}
+
+function familiaDoCadastro(c: CadastroSalvo): Pessoa[] {
+  const lista = (c.composicao_familiar ?? []).map((p) => ({
+    nome_completo: String(p["nome_completo"] ?? ""),
+    parentesco: String(p["parentesco"] ?? ""),
+    idade: p["idade"] == null ? "" : String(p["idade"]),
+    ocupacao: String(p["ocupacao"] ?? ""),
+  }));
+  return lista.length > 0 ? lista : [{ ...PESSOA_VAZIA }];
+}
+
 /* ------------------------------------------------------------------ */
 /* Página                                                              */
 /* ------------------------------------------------------------------ */
 
 function ComplementarCadastro() {
   const { data: acesso } = useAcesso();
+  const navegar = useNavigate();
+  const queryClient = useQueryClient();
   const [etapa, setEtapa] = useState<Etapa>("boas-vindas");
   const [aba, setAba] = useState<"dados" | "endereco">("dados");
   const [form, setForm] = useState<Formulario>(FORM_INICIAL);
-  const [familia, setFamilia] = useState<Pessoa[]>([
-    { nome_completo: "", parentesco: "", idade: "", ocupacao: "" },
-  ]);
+  const [familia, setFamilia] = useState<Pessoa[]>([{ ...PESSOA_VAZIA }]);
+  /** Cadastro da própria conta em edição; nulo é cadastro novo. */
+  const [cadastroId, setCadastroId] = useState<string | null>(null);
+  const [preparado, setPreparado] = useState(false);
+  const [atualizou, setAtualizou] = useState(false);
   const [compartilhar, setCompartilhar] = useState<boolean | null>(null);
   const [erros, setErros] = useState<Record<string, string>>({});
   const [lgpd, setLgpd] = useState(false);
@@ -189,6 +242,67 @@ function ComplementarCadastro() {
       return data ?? [];
     },
   });
+
+  // Mesma chave e consulta de "Meus dados", para as duas telas dividirem o cache.
+  const meuCadastro = useQuery({
+    queryKey: ["meu-cadastro"],
+    queryFn: async () => {
+      const { data: sessao } = await supabase.auth.getSession();
+      const userId = sessao.session?.user?.id;
+      if (!userId) return null;
+      const { data, error } = await supabase
+        .from("cadastros")
+        .select(
+          "*, congregacoes(nome), composicao_familiar(id, nome_completo, parentesco, idade, ocupacao)",
+        )
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  /**
+   * Quem já tem cadastro pula as boas-vindas e entra no formulário preenchido:
+   * na Revisão se está completo, nos Complementares se falta essa parte.
+   */
+  function preparar(salvo: CadastroSalvo | null) {
+    if (salvo) {
+      const completo = salvo["compartilhou_dados_complementares"] === true;
+      setForm(cadastroParaFormulario(salvo));
+      setFamilia(familiaDoCadastro(salvo));
+      setCadastroId(salvo.id);
+      setCompartilhar(completo ? true : null);
+      setEtapa(completo ? "revisao" : "bifurcacao");
+    } else {
+      setForm(FORM_INICIAL);
+      setFamilia([{ ...PESSOA_VAZIA }]);
+      setCadastroId(null);
+      setCompartilhar(null);
+      setEtapa("boas-vindas");
+    }
+    setErros({});
+    setLgpd(false);
+    setErroLgpd("");
+    setErroEnvio("");
+    setConvidou(false);
+    setAtualizou(false);
+    setAba("dados");
+    setPreparado(true);
+  }
+
+  useEffect(() => {
+    if (preparado) return;
+    if (meuCadastro.isSuccess) preparar((meuCadastro.data as CadastroSalvo | null) ?? null);
+    // Sem conseguir ler o cadastro, segue o fluxo de cadastro novo.
+    if (meuCadastro.isError) preparar(null);
+  }, [preparado, meuCadastro.isSuccess, meuCadastro.isError, meuCadastro.data]);
+
+  /** Liderança editando o próprio cadastro e querendo cadastrar outra pessoa. */
+  function cadastrarOutraPessoa() {
+    preparar(null);
+    setEtapa("dados");
+  }
 
   const setCampo = <K extends keyof Formulario>(campo: K, valor: Formulario[K]) => {
     setForm((atual) => {
@@ -258,7 +372,9 @@ function ComplementarCadastro() {
       const user = sessao.user;
       const emailInformado = form.email.trim().toLowerCase();
       const emailDaConta = (user?.email ?? "").trim().toLowerCase();
-      const eOutraPessoa = emailInformado !== emailDaConta;
+      // Editando o próprio cadastro, a pessoa é sempre a dona da conta.
+      const editando = cadastroId !== null;
+      const eOutraPessoa = !editando && emailInformado !== emailDaConta;
 
       if (eOutraPessoa && !acesso?.isAdmin) {
         setErroEnvio(
@@ -270,7 +386,6 @@ function ComplementarCadastro() {
 
       const compartilhou = compartilhar === true;
       const registro = {
-        user_id: eOutraPessoa ? null : (user?.id ?? null),
         nome_completo: form.nome_completo.trim(),
         data_nascimento: form.data_nascimento,
         cpf: form.cpf,
@@ -296,21 +411,24 @@ function ComplementarCadastro() {
         lgpd_aceito: true,
       };
 
-      let { data: criado, error } = await supabase
-        .from("cadastros")
-        .insert(registro)
-        .select("id")
-        .single();
+      // Cadastro existente é atualizado; cadastro novo é criado com o dono da conta
+      // (ou sem dono, quando a liderança cadastra outra pessoa).
+      const gravar = (r: Omit<typeof registro, "bairro"> & { bairro?: string | null }) =>
+        editando
+          ? supabase.from("cadastros").update(r).eq("id", cadastroId).select("id").single()
+          : supabase
+              .from("cadastros")
+              .insert({ ...r, user_id: eOutraPessoa ? null : (user?.id ?? null) })
+              .select("id")
+              .single();
+
+      let { data: criado, error } = await gravar(registro);
 
       // A coluna bairro entra pela migração 20260830180000; enquanto o banco não
       // a tiver, o cadastro segue sem ela em vez de falhar.
       if (error?.code === "PGRST204") {
         const { bairro: _bairro, ...semBairro } = registro;
-        ({ data: criado, error } = await supabase
-          .from("cadastros")
-          .insert(semBairro)
-          .select("id")
-          .single());
+        ({ data: criado, error } = await gravar(semBairro));
       }
 
       if (error) {
@@ -334,10 +452,18 @@ function ComplementarCadastro() {
               ocupacao: p.ocupacao.trim() || null,
             }))
         : [];
+      // Na edição, a composição familiar revisada substitui a anterior.
+      if (editando) {
+        await supabase.from("composicao_familiar").delete().eq("cadastro_id", criado!.id);
+      }
       if (pessoas.length > 0) await supabase.from("composicao_familiar").insert(pessoas);
 
+      await queryClient.invalidateQueries({ queryKey: ["meu-cadastro"] });
+      await queryClient.invalidateQueries({ queryKey: ["inicio"] });
+
+      setAtualizou(editando);
       await registrarAuditoria({
-        acao: "criou",
+        acao: editando ? "atualizou" : "criou",
         entidade: "cadastro",
         entidadeId: criado?.id ?? null,
         detalhe: registro.nome_completo,
@@ -363,17 +489,13 @@ function ComplementarCadastro() {
     }
   }
 
+  /** Depois de salvar, volta ao estado do cadastro já atualizado no banco. */
   function reiniciar() {
-    setForm(FORM_INICIAL);
-    setFamilia([{ nome_completo: "", parentesco: "", idade: "", ocupacao: "" }]);
-    setCompartilhar(null);
-    setErros({});
-    setLgpd(false);
-    setErroLgpd("");
-    setErroEnvio("");
-    setConvidou(false);
-    setAba("dados");
-    setEtapa("boas-vindas");
+    setPreparado(false);
+  }
+
+  if (!preparado) {
+    return <Carregando />;
   }
 
   if (etapa === "boas-vindas") {
@@ -381,11 +503,35 @@ function ComplementarCadastro() {
   }
 
   if (etapa === "sucesso") {
-    return <Sucesso nome={form.nome_completo} convidou={convidou} onVoltar={reiniciar} />;
+    return (
+      <Sucesso
+        nome={form.nome_completo}
+        convidou={convidou}
+        atualizou={atualizou}
+        onVoltar={reiniciar}
+      />
+    );
   }
 
   return (
     <div className="mx-auto w-full max-w-[672px] space-y-5">
+      {cadastroId ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-jt-muted">
+          <span>
+            Você está editando o seu cadastro. Depois de salvar, as mudanças valem na hora.
+          </span>
+          {acesso?.isAdmin ? (
+            <button
+              type="button"
+              onClick={cadastrarOutraPessoa}
+              className="font-medium text-jt-blue underline-offset-2 hover:underline"
+            >
+              Cadastrar outra pessoa
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="rounded-xl border border-jt-line bg-jt-panel p-4">
         <ProgressTrail etapas={trilha} atual={indiceTrilha[etapa] ?? 0} />
       </div>
@@ -398,7 +544,7 @@ function ComplementarCadastro() {
           setAba={setAba}
           setCampo={setCampo}
           congregacoes={congregacoes.data ?? []}
-          onVoltar={() => setEtapa("boas-vindas")}
+          onVoltar={() => (cadastroId ? void navegar({ to: "/inicio" }) : setEtapa("boas-vindas"))}
           onAvancar={() => {
             if (validarDados()) setEtapa("bifurcacao");
           }}
@@ -456,6 +602,15 @@ function ComplementarCadastro() {
           erroLgpd={erroLgpd}
           erroEnvio={erroEnvio}
           enviando={enviando}
+          editando={cadastroId !== null}
+          onEditar={(alvo) => {
+            if (alvo === "dados" || alvo === "endereco") {
+              setAba(alvo);
+              setEtapa("dados");
+            } else {
+              setEtapa(alvo === "familia" ? "familia" : "socioeconomico");
+            }
+          }}
           onVoltar={() => setEtapa(compartilhar ? "socioeconomico" : "bifurcacao")}
           onConcluir={enviar}
         />
@@ -991,6 +1146,8 @@ function EtapaRevisao({
   erroLgpd,
   erroEnvio,
   enviando,
+  editando,
+  onEditar,
   onVoltar,
   onConcluir,
 }: {
@@ -1003,6 +1160,8 @@ function EtapaRevisao({
   erroLgpd: string;
   erroEnvio: string;
   enviando: boolean;
+  editando: boolean;
+  onEditar: (aba: AbaRevisao) => void;
   onVoltar: () => void;
   onConcluir: () => void;
 }) {
@@ -1037,8 +1196,15 @@ function EtapaRevisao({
 
   return (
     <Panel>
-      <Eyebrow>Última etapa</Eyebrow>
-      <h1 className="mt-1 font-display text-2xl text-jt-text">Revisar e concluir</h1>
+      <Eyebrow>{editando ? "Seu cadastro" : "Última etapa"}</Eyebrow>
+      <h1 className="mt-1 font-display text-2xl text-jt-text">
+        {editando ? "Revisar e salvar" : "Revisar e concluir"}
+      </h1>
+      {editando ? (
+        <p className="mt-1 text-sm text-jt-muted">
+          Escolha uma seção e toque em “editar” para mudar só o que precisa.
+        </p>
+      ) : null}
 
       <div className="mt-5 grid gap-4 sm:grid-cols-[160px_1fr]">
         <ul className="space-y-1">
@@ -1069,6 +1235,17 @@ function EtapaRevisao({
         </ul>
 
         <div className="h-[300px] overflow-y-auto rounded-xl border border-jt-line bg-jt-panel-2 px-4 py-2">
+          <div className="flex justify-end border-b border-jt-line py-1.5">
+            <button
+              type="button"
+              onClick={() => onEditar(aba)}
+              disabled={enviando}
+              className="inline-flex items-center gap-1 text-xs font-medium text-jt-blue underline-offset-2 hover:underline disabled:opacity-40"
+            >
+              <Pencil className="h-3.5 w-3.5" aria-hidden /> editar{" "}
+              {abas.find((a) => a.chave === aba)?.rotulo.toLowerCase()}
+            </button>
+          </div>
           {aba === "dados"
             ? [
                 linha("Nome completo", form.nome_completo),
@@ -1152,7 +1329,7 @@ function EtapaRevisao({
           Voltar
         </PillButton>
         <PillButton onClick={onConcluir} disabled={enviando}>
-          {enviando ? "Salvando…" : "Concluir cadastro"}
+          {enviando ? "Salvando…" : editando ? "Salvar alterações" : "Concluir cadastro"}
         </PillButton>
       </div>
     </Panel>
@@ -1166,17 +1343,21 @@ function EtapaRevisao({
 function Sucesso({
   nome,
   convidou,
+  atualizou,
   onVoltar,
 }: {
   nome: string;
   convidou: boolean;
+  atualizou: boolean;
   onVoltar: () => void;
 }) {
   const navegar = useNavigate();
+  // Cadastro novo volta sozinho para o formulário; edição espera a pessoa sair.
   useEffect(() => {
+    if (atualizou) return;
     const t = setTimeout(onVoltar, 5000);
     return () => clearTimeout(t);
-  }, [onVoltar]);
+  }, [onVoltar, atualizou]);
 
   const primeiro = nome.trim().split(/\s+/)[0] ?? "";
 
@@ -1188,9 +1369,11 @@ function Sucesso({
         </div>
         <h1 className="mt-4 font-display text-2xl text-jt-text">Obrigado, {primeiro}!</h1>
         <p className="mx-auto mt-2 max-w-md text-sm text-jt-muted">
-          {convidou
-            ? "Cadastro registrado! Enviamos um e-mail para essa pessoa definir uma senha e acessar o site."
-            : "Seu cadastro foi registrado. Em breve a liderança do ministério vai falar com você."}
+          {atualizou
+            ? "Seus dados foram atualizados."
+            : convidou
+              ? "Cadastro registrado! Enviamos um e-mail para essa pessoa definir uma senha e acessar o site."
+              : "Seu cadastro foi registrado. Em breve a liderança do ministério vai falar com você."}
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <PillButton
