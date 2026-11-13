@@ -8,6 +8,13 @@
       "when": 1794605780211,
       "tag": "0000_evento_confirmacao",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794610435606,
+      "tag": "0001_cadastro_complementares_respondido",
+      "breakpoints": true
     }
   ]
 }
