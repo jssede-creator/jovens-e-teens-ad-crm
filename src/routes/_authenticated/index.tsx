@@ -31,6 +31,7 @@ import { registrarAuditoria } from "@/lib/auditoria";
 import { convidarPessoa } from "@/lib/convite.functions";
 import { dataParaBR, semMascara } from "@/lib/formato";
 import { useAcesso } from "@/hooks/use-acesso";
+import { complementaresRespondidos } from "@/hooks/use-situacao-cadastro";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -268,11 +269,12 @@ function ComplementarCadastro() {
    */
   function preparar(salvo: CadastroSalvo | null) {
     if (salvo) {
-      const completo = salvo["compartilhou_dados_complementares"] === true;
+      // Completo é quem já respondeu aos complementares, com "Sim" ou com "Não".
+      const completo = complementaresRespondidos(salvo);
       setForm(cadastroParaFormulario(salvo));
       setFamilia(familiaDoCadastro(salvo));
       setCadastroId(salvo.id);
-      setCompartilhar(completo ? true : null);
+      setCompartilhar(completo ? salvo["compartilhou_dados_complementares"] === true : null);
       setEtapa(completo ? "revisao" : "bifurcacao");
     } else {
       setForm(FORM_INICIAL);
@@ -400,6 +402,8 @@ function ComplementarCadastro() {
         cidade: form.cidade.trim(),
         cep: form.cep,
         compartilhou_dados_complementares: compartilhou,
+        // Passou pela pergunta dos complementares: "Não" também conclui o cadastro.
+        complementares_respondido: true,
         escolaridade: compartilhou ? form.escolaridade || null : null,
         local_estudo: compartilhou ? form.local_estudo.trim() || null : null,
         curso: compartilhou ? form.curso.trim() || null : null,
@@ -413,7 +417,12 @@ function ComplementarCadastro() {
 
       // Cadastro existente é atualizado; cadastro novo é criado com o dono da conta
       // (ou sem dono, quando a liderança cadastra outra pessoa).
-      const gravar = (r: Omit<typeof registro, "bairro"> & { bairro?: string | null }) =>
+      const gravar = (
+        r: Omit<typeof registro, "bairro" | "complementares_respondido"> & {
+          bairro?: string | null;
+          complementares_respondido?: boolean;
+        },
+      ) =>
         editando
           ? supabase.from("cadastros").update(r).eq("id", cadastroId).select("id").single()
           : supabase
@@ -424,11 +433,20 @@ function ComplementarCadastro() {
 
       let { data: criado, error } = await gravar(registro);
 
-      // A coluna bairro entra pela migração 20260830180000; enquanto o banco não
-      // a tiver, o cadastro segue sem ela em vez de falhar.
+      // Colunas que entram por migração (bairro: 20260830180000;
+      // complementares_respondido: 20261114120000). Enquanto o banco não as
+      // tiver, o cadastro segue sem elas em vez de falhar.
       if (error?.code === "PGRST204") {
-        const { bairro: _bairro, ...semBairro } = registro;
-        ({ data: criado, error } = await gravar(semBairro));
+        const { complementares_respondido: _respondido, ...semRespondido } = registro;
+        ({ data: criado, error } = await gravar(semRespondido));
+      }
+      if (error?.code === "PGRST204") {
+        const {
+          bairro: _bairro,
+          complementares_respondido: _respondido,
+          ...semColunasNovas
+        } = registro;
+        ({ data: criado, error } = await gravar(semColunasNovas));
       }
 
       if (error) {

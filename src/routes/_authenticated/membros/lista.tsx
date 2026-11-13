@@ -758,14 +758,18 @@ function MembrosLista() {
       };
 
       if (editando) {
+        // Editar o membro não mexe na resposta dele aos dados complementares:
+        // gravar "false" aqui apagava o que a pessoa compartilhou.
+        const { compartilhou_dados_complementares: _c1, ...comReferenciaEdicao } = comReferencia;
+        const { compartilhou_dados_complementares: _c2, ...baseEdicao } = base;
         let { error } = await supabase
           .from("cadastros")
-          .update(comReferencia as never)
+          .update(comReferenciaEdicao as never)
           .eq("id", editando.id);
         // A coluna ponto_referencia entra pela migração 20260828230000; enquanto
         // o banco não a tiver, o cadastro segue sem ela em vez de falhar.
         if (error?.code === "PGRST204" && referencia) {
-          ({ error } = await supabase.from("cadastros").update(base).eq("id", editando.id));
+          ({ error } = await supabase.from("cadastros").update(baseEdicao).eq("id", editando.id));
         }
         if (error) throw error;
         await registrarAuditoria({

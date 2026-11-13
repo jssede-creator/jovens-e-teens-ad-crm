@@ -28,6 +28,7 @@ import { PageHeader } from "@/components/crm/pagina";
 import { Carregando } from "@/components/sem-permissao";
 import { Badge } from "@/components/ui/badge";
 import { useAcesso } from "@/hooks/use-acesso";
+import { complementaresRespondidos } from "@/hooks/use-situacao-cadastro";
 import { supabase } from "@/integrations/supabase/client";
 import { registrarAuditoria } from "@/lib/auditoria";
 import { idadeEm, iniciais } from "@/lib/ebd";
@@ -228,7 +229,9 @@ function MeusDados() {
 
   const congregacao = c?.congregacoes?.nome ?? "—";
   const completo = c?.["compartilhou_dados_complementares"] === true;
-  const percentual = !c ? 0 : completo ? 100 : 50;
+  // "Não, prefiro não compartilhar" também conclui o cadastro.
+  const respondeu = complementaresRespondidos(c);
+  const percentual = !c ? 0 : respondeu ? 100 : 50;
   const idade = idadeEm(c?.["data_nascimento"] as string | null);
   const familia = c?.composicao_familiar ?? [];
   const texto = (chave: string) => (c?.[chave] as string | null) ?? "";
@@ -408,7 +411,7 @@ function MeusDados() {
             <Resumo rotulo="Vínculo" valor="Cadastro vinculado" destaque />
             <Resumo
               rotulo="Dados complementares"
-              valor={completo ? "Preenchidos" : "Pendentes"}
+              valor={completo ? "Preenchidos" : respondeu ? "Não compartilhados" : "Pendentes"}
               destaque={completo}
             />
             <Resumo rotulo="Congregação" valor={congregacao} />
