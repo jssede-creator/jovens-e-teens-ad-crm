@@ -881,6 +881,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      evento_codigo_comprovante: { Args: never; Returns: string }
+      evento_gratuito: { Args: { _evento_id: string }; Returns: boolean }
       eventos_inscritos: {
         Args: never
         Returns: {
