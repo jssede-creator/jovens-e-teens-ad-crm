@@ -417,12 +417,7 @@ function ComplementarCadastro() {
 
       // Cadastro existente é atualizado; cadastro novo é criado com o dono da conta
       // (ou sem dono, quando a liderança cadastra outra pessoa).
-      const gravar = (
-        r: Omit<typeof registro, "bairro" | "complementares_respondido"> & {
-          bairro?: string | null;
-          complementares_respondido?: boolean;
-        },
-      ) =>
+      const gravar = (r: typeof registro) =>
         editando
           ? supabase.from("cadastros").update(r).eq("id", cadastroId).select("id").single()
           : supabase
@@ -431,23 +426,7 @@ function ComplementarCadastro() {
               .select("id")
               .single();
 
-      let { data: criado, error } = await gravar(registro);
-
-      // Colunas que entram por migração (bairro: 20260830180000;
-      // complementares_respondido: 20261114120000). Enquanto o banco não as
-      // tiver, o cadastro segue sem elas em vez de falhar.
-      if (error?.code === "PGRST204") {
-        const { complementares_respondido: _respondido, ...semRespondido } = registro;
-        ({ data: criado, error } = await gravar(semRespondido));
-      }
-      if (error?.code === "PGRST204") {
-        const {
-          bairro: _bairro,
-          complementares_respondido: _respondido,
-          ...semColunasNovas
-        } = registro;
-        ({ data: criado, error } = await gravar(semColunasNovas));
-      }
+      const { data: criado, error } = await gravar(registro);
 
       if (error) {
         if (error.code === "23505" || /duplicate key/i.test(error.message)) {
