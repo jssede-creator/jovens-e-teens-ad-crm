@@ -29,23 +29,17 @@ export function useSituacaoCadastro() {
       const userId = sessao.session?.user?.id;
       if (!userId) return { situacao: "sem", congregacao: "—" };
 
-      const consultar = (colunas: string) =>
-        supabase.from("cadastros").select(colunas).eq("user_id", userId).maybeSingle();
+      const { data, error } = await supabase
+        .from("cadastros")
+        .select("compartilhou_dados_complementares, complementares_respondido, congregacoes(nome)")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error;
 
-      let resposta = await consultar(
-        "compartilhou_dados_complementares, complementares_respondido, congregacoes(nome)",
-      );
-      // Banco ainda sem a coluna complementares_respondido (migração 20261114120000).
-      if (resposta.error) {
-        resposta = await consultar("compartilhou_dados_complementares, congregacoes(nome)");
-      }
-      if (resposta.error) throw resposta.error;
-
-      const data = resposta.data as unknown as Record<string, unknown> | null;
       if (!data) return { situacao: "sem", congregacao: "—" };
       return {
         situacao: complementaresRespondidos(data) ? "completo" : "basico",
-        congregacao: (data["congregacoes"] as { nome: string } | null)?.nome ?? "—",
+        congregacao: data.congregacoes?.nome ?? "—",
       };
     },
   });
