@@ -118,6 +118,7 @@ export type Database = {
           cep: string
           cidade: string
           compartilhou_dados_complementares: boolean
+          complementares_respondido: boolean
           complemento: string | null
           congregacao_id: string | null
           cpf: string
@@ -148,6 +149,7 @@ export type Database = {
           cep: string
           cidade: string
           compartilhou_dados_complementares?: boolean
+          complementares_respondido?: boolean
           complemento?: string | null
           congregacao_id?: string | null
           cpf: string
@@ -178,6 +180,7 @@ export type Database = {
           cep?: string
           cidade?: string
           compartilhou_dados_complementares?: boolean
+          complementares_respondido?: boolean
           complemento?: string | null
           congregacao_id?: string | null
           cpf?: string
